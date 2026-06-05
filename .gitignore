@@ -51,16 +51,16 @@ check_account.py
 migrations/versions/
 
 # ── Root-level Next.js leftovers ──
-package.json
-package-lock.json
-tsconfig.json
-eslint.config.mjs
-next.config.ts
-postcss.config.mjs
-src/
-public/
-prisma/
-prisma.config.ts
+/package.json
+/package-lock.json
+/tsconfig.json
+/eslint.config.mjs
+/next.config.ts
+/postcss.config.mjs
+/src/
+/public/
+/prisma/
+/prisma.config.ts
 
 # ── Data ──
 backend/register_data.json
