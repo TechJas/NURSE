@@ -56,7 +56,7 @@ def _check_expired_documents():
     finally:
         db.close()
 
-# CORS — allow React dev server (port 5173) to talk to FastAPI
+# CORS — allow both local dev and production domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -65,7 +65,6 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "https://nurse-wvfe.onrender.com",
-        "https://nurse.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
