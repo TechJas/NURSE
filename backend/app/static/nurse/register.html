@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join MediLogistics - Professional Nurse Registration</title>
+    <link rel="stylesheet" href="/static/admin/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #F9FAFB;
+        }
+        body {
+            background-color: var(--color-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .registration-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: #4F46E5;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group.full {
+            grid-column: span 2;
+        }
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full {
+                grid-column: span 1;
+            }
+        }
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            margin-top: 24px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+        .login-link a {
+            color: #4F46E5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="registration-container">
+        <div class="header">
+            <div class="logo-box">
+                <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 8L22 14L16 20L10 14L16 8Z" fill="white" />
+                </svg>
+            </div>
+            <h1 class="page-title" style="margin-bottom: 8px;">Nurse Registration</h1>
+            <p class="page-subtitle">Join our professional healthcare network</p>
+        </div>
+
+        <form id="registerForm">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Full Name *</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="email" placeholder="nurse@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="phone" placeholder="+1234567890" required>
+                </div>
+                <div class="form-group">
+                    <label>Age *</label>
+                    <input type="number" id="age" min="21" placeholder="Min 21" required>
+                </div>
+                <div class="form-group">
+                    <label>Registration Number *</label>
+                    <input type="text" id="regNumber" placeholder="Nursing Council Reg No" required>
+                </div>
+                <div class="form-group">
+                    <label>Specialization</label>
+                    <select id="specialization">
+                        <option value="General">General Nursing</option>
+                        <option value="ICU">ICU Specialist</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="Elderly Care">Elderly Care</option>
+                        <option value="Emergency">Emergency Room</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Experience (Years)</label>
+                    <input type="number" id="experience" min="0" placeholder="Years of exp">
+                </div>
+                <div class="form-group full">
+                    <label>Password *</label>
+                    <input type="password" id="password" placeholder="Create a strong password" required minlength="8">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-register">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script src="/static/nurse/app.js"></script>
+</body>
+</html>

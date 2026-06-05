@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Portal - Healthcare Workforce Management</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#4F46E5" />
+            <path d="M16 8L22 14L16 20L10 14L16 8Z" fill="white" />
+          </svg>
+          <span>HealthAdmin</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+            />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-page="kyc">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+            <path
+              fill-rule="evenodd"
+              d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>KYC Verification</span>
+        </a>
+        <a href="#" class="nav-item" data-page="interviews">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Interview Management</span>
+        </a>
+        <a href="#" class="nav-item" data-page="allocation">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+            />
+          </svg>
+          <span>Position Allocation</span>
+        </a>
+        <a href="#" class="nav-item" data-page="active-nurses">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"
+            />
+          </svg>
+          <span>Active Nurses</span>
+        </a>
+        <a href="#" class="nav-item" data-page="hospitals">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Hospitals</span>
+        </a>
+        <a href="#" class="nav-item" data-page="audit">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Audit Logs</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="search-bar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <input
+            type="text"
+            id="globalSearch"
+            placeholder="Search by nurse name, registration number, hospital..."
+          />
+        </div>
+
+        <div class="top-nav-actions">
+          <button class="notification-btn" id="notificationBtn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
+              />
+            </svg>
+            <span class="notification-badge">3</span>
+          </button>
+
+          <div class="admin-profile">
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%234F46E5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='16' font-family='Inter'%3EA%3C/text%3E%3C/svg%3E"
+              alt="Admin"
+            />
+            <div>
+              <div class="admin-name">Admin User</div>
+              <div class="admin-role">Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content Container -->
+      <main class="page-content" id="pageContent">
+        <!-- Dynamic content will be loaded here -->
+      </main>
+    </div>
+
+    <!-- KYC Review Sliding Panel -->
+    <div class="sliding-panel" id="kycPanel">
+      <div class="panel-overlay"></div>
+      <div class="panel-content">
+        <div class="panel-header">
+          <h2>KYC Document Review</h2>
+          <button class="panel-close" id="closePanelBtn">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="panel-body">
+          <div class="document-preview">
+            <h3>Documents</h3>
+            <div class="document-grid" id="documentGrid">
+              <!-- Documents will be loaded here -->
+            </div>
+          </div>
+
+          <div class="nurse-details">
+            <h3>Nurse Details</h3>
+            <form id="nurseDetailsForm">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="nurseName" readonly />
+              </div>
+              <div class="form-group">
+                <label>Registration Number</label>
+                <input type="text" id="nurseRegNumber" readonly />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="nurseEmail" readonly />
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="nursePhone" readonly />
+              </div>
+              <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" id="nurseSpecialization" readonly />
+              </div>
+            </form>
+
+            <div class="panel-actions">
+              <button class="btn btn-success" id="approveKycBtn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Approve KYC
+              </button>
+              <button class="btn btn-danger" id="rejectKycBtn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Reject KYC
+              </button>
+              <button class="btn btn-warning" id="requestReuploadBtn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Request Re-upload
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interview Scheduling Modal -->
+    <div class="modal" id="interviewModal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Schedule Interview</h2>
+          <button class="modal-close" id="closeInterviewModal">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="interviewForm" class="modal-body">
+          <div class="form-group">
+            <label>Select Nurse *</label>
+            <select id="interviewNurseSelect" required>
+              <option value="">Choose a nurse...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Interviewer Name *</label>
+            <input
+              type="text"
+              id="interviewerName"
+              required
+              placeholder="Enter interviewer name"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Interview Date *</label>
+              <input type="date" id="interviewDate" required />
+            </div>
+            <div class="form-group">
+              <label>Interview Time *</label>
+              <input type="time" id="interviewTime" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Location *</label>
+            <input
+              type="text"
+              id="interviewLocation"
+              required
+              placeholder="Enter interview location"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea
+              id="interviewNotes"
+              rows="3"
+              placeholder="Additional notes..."
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="cancelInterviewBtn"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Schedule Interview
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Position Assignment Modal -->
+    <div class="modal" id="positionModal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Assign Position</h2>
+          <button class="modal-close" id="closePositionModal">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="positionForm" class="modal-body">
+          <input type="hidden" id="positionNurseId" />
+
+          <div class="form-group">
+            <label>Position Type *</label>
+            <select id="positionType" required>
+              <option value="">Select position type...</option>
+              <option value="Home Nurse">Home Nurse</option>
+              <option value="Hospital Staff Nurse">Hospital Staff Nurse</option>
+              <option value="ICU Nurse">ICU Nurse</option>
+              <option value="Elderly Care Specialist">
+                Elderly Care Specialist
+              </option>
+              <option value="Pediatric Nurse">Pediatric Nurse</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Select Hospital *</label>
+            <select id="positionHospitalSelect" required>
+              <option value="">Choose a hospital...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Salary Package *</label>
+              <input
+                type="number"
+                id="positionSalary"
+                required
+                placeholder="Monthly salary"
+              />
+            </div>
+            <div class="form-group">
+              <label>Shift Timing *</label>
+              <select id="positionShift" required>
+                <option value="">Select shift...</option>
+                <option value="Morning">Morning (6 AM - 2 PM)</option>
+                <option value="Evening">Evening (2 PM - 10 PM)</option>
+                <option value="Night">Night (10 PM - 6 AM)</option>
+                <option value="Rotational">Rotational</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Joining Date *</label>
+            <input type="date" id="positionStartDate" required />
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="cancelPositionBtn"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Assign Position & Activate Nurse
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h2 id="confirmTitle">Confirm Action</h2>
+        </div>
+
+        <div class="modal-body">
+          <p id="confirmMessage"></p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="confirmCancelBtn">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="confirmOkBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+      <div class="toast-content">
+        <svg
+          class="toast-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span id="toastMessage"></span>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
