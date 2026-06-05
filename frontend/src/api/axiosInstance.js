@@ -4,7 +4,7 @@ import axios from 'axios';
 // Empty baseURL = use Vite proxy (defined in vite.config.js)
 // This ensures Authorization headers are always correctly forwarded
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'https://nurse-wvfe.onrender.com',
   headers: { 'Content-Type': 'application/json' },
 });
 
