@@ -65,6 +65,7 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "https://nurse-wvfe.onrender.com",
+        "https://nurse-platform.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
