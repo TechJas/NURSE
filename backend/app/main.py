@@ -119,6 +119,10 @@ app.include_router(hospital_admin.router, tags=["Hospital Admin"])
 app.include_router(dept_head.router, tags=["Dept Head"])
 app.include_router(export.router, tags=["Export"])
 
+@app.head("/")
+def home_head():
+    return Response(status_code=200)
+
 @app.get("/")
 def home():
     """Serve the nurse registration page by default"""
