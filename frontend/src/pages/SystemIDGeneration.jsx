@@ -1,8 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import AppLayout from '../layouts/AppLayout';
 import {
   getSystemIdCandidates,
-  uploadInterviewResults,
   sendCareIdEmail,
   sendCareIdBulk,
   resetCareIdLockout,
@@ -12,11 +11,8 @@ import toast from 'react-hot-toast';
 export default function SystemIDGeneration() {
   const [candidates, setCandidates]     = useState([]);
   const [loading, setLoading]           = useState(true);
-  const [uploading, setUploading]       = useState(false);
-  const [uploadResult, setUploadResult] = useState(null);
   const [bulkOpen, setBulkOpen]         = useState(false);
   const [sending, setSending]           = useState({});
-  const fileRef = useRef();
 
   const load = async () => {
     try {
@@ -30,27 +26,6 @@ export default function SystemIDGeneration() {
   };
 
   useEffect(() => { load(); }, []);
-
-  /* ── CSV Upload ── */
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    setUploadResult(null);
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const res = await uploadInterviewResults(fd);
-      setUploadResult(res.data);
-      toast.success(res.data.message);
-      load();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Upload failed.');
-    } finally {
-      setUploading(false);
-      fileRef.current.value = '';
-    }
-  };
 
   /* ── Individual Send ── */
   const handleSend = async (nurseId, email) => {
@@ -97,47 +72,6 @@ export default function SystemIDGeneration() {
       {/* ── Top Action Bar ── */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
 
-        {/* Upload Results CSV */}
-        <label style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: '#1e3a5f', color: '#fff', padding: '9px 18px',
-          borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600,
-          opacity: uploading ? 0.7 : 1,
-        }}>
-          {uploading ? '⏳ Uploading…' : '📤 Upload Results CSV'}
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv"
-            style={{ display: 'none' }}
-            onChange={handleFileUpload}
-            disabled={uploading}
-          />
-        </label>
-
-        {/* Sample CSV Download */}
-        <button
-          onClick={() => {
-            const csv = 'email,result\nnurse1@hospital.com,PASSED\nnurse2@hospital.com,FAILED\nnurse3@hospital.com,PASSED\n';
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'results_sample.csv'; a.click();
-            URL.revokeObjectURL(url);
-          }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: '#f0fdf4', color: '#166534', border: '1px solid #86efac',
-            padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-            fontSize: 13, fontWeight: 600,
-          }}
-        >
-          📥 Sample CSV
-        </button>
-
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          CSV columns: <code>email, result</code> (PASSED / FAILED)
-        </span>
-
         {/* Bulk Email dropdown */}
         <div style={{ position: 'relative' }}>
           <button
@@ -171,34 +105,6 @@ export default function SystemIDGeneration() {
         </div>
       </div>
 
-      {/* ── Upload Result Banner ── */}
-      {uploadResult && (
-        <div style={{
-          background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10,
-          padding: '14px 18px', marginBottom: 20,
-        }}>
-          <strong style={{ color: '#166534' }}>Upload Summary</strong>
-          <div style={{ display: 'flex', gap: 24, marginTop: 8, fontSize: 14, color: '#374151', flexWrap: 'wrap' }}>
-            <span>Processed: <strong>{uploadResult.processed}</strong></span>
-            <span style={{ color: '#166534' }}>Passed: <strong>{uploadResult.passed}</strong></span>
-            <span style={{ color: '#dc2626' }}>Failed: <strong>{uploadResult.failed}</strong></span>
-          </div>
-          {uploadResult.unmatched?.length > 0 && (
-            <div style={{
-              background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8,
-              padding: '10px 14px', marginTop: 12,
-            }}>
-              <strong style={{ color: '#c2410c', fontSize: 13 }}>
-                ⚠️ {uploadResult.unmatched.length} email(s) not found in system — fix CSV and re-upload:
-              </strong>
-              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 13, color: '#9a3412' }}>
-                {uploadResult.unmatched.map(e => <li key={e}>{e}</li>)}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* ── Candidates Table ── */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>Loading…</div>
@@ -206,7 +112,7 @@ export default function SystemIDGeneration() {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <p>No interview results yet. Upload a Results CSV to get started.</p>
+            <p>No CARE IDs generated yet.</p>
           </div>
         </div>
       ) : (
