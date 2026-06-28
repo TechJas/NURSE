@@ -985,15 +985,18 @@ def get_venues(
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_admin_user)
 ):
-    """Return hospital names as venue options for interview session creation."""
-    hospitals = db.query(Hospital).order_by(Hospital.name).all()
+    """Return CSV-uploaded venue master records for interview session dropdown."""
+    venues = db.query(VenueMaster).order_by(VenueMaster.venue_name).all()
     return [
         {
-            "venue_name":  h.name,
-            "hospital_id": str(h.id),
-            "address":     h.location or "",
+            "id":           str(v.id),
+            "venue_name":   v.venue_name,
+            "address":      v.branch or "",
+            "room_number":  v.room_number or "",
+            "floor":        v.floor or "",
+            "block":        v.block or "",
         }
-        for h in hospitals
+        for v in venues
     ]
 
 

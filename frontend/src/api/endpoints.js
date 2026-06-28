@@ -49,8 +49,11 @@ export const uploadInterviewResults = (formData) =>
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
-// ─── Admin: Venues (hospital names) ──────────
-export const getVenues = () => api.get('/admin/venues');
+// ─── Admin: Venues ───────────────────────────
+export const getVenues      = ()       => api.get('/admin/venues');
+export const uploadVenueCsv = (formData) => api.post('/admin/venues/upload', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 
 // ─── Admin: System ID Generation ─────────────
 export const getSystemIdCandidates = ()        => api.get('/admin/system-id/candidates');

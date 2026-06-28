@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../layouts/AppLayout';
 import {
   getInterviewSessions, createInterviewSession, submitInterviewResult,
-  listNurses, getVenues,
+  listNurses, getVenues, uploadVenueCsv,
 } from '../api/endpoints';
 import toast from 'react-hot-toast';
 
@@ -80,6 +80,43 @@ export default function Interviews() {
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
           ➕ Create Interview Session
         </button>
+      </div>
+
+      <div className="card" style={{ marginBottom: 20, padding: 16, background: '#fafafa' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <strong style={{ fontSize: 13 }}>Venue Master</strong>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>
+              {venues.length} venue{venues.length !== 1 ? 's' : ''} loaded
+            </p>
+          </div>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1e3a5f', color: '#fff', padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            📤 Upload Venue CSV
+            <input
+              type="file" accept=".csv" style={{ display: 'none' }}
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const fd = new FormData();
+                fd.append('file', file);
+                try {
+                  await uploadVenueCsv(fd);
+                  toast.success('Venues uploaded!');
+                  fetchAll();
+                } catch (err) {
+                  toast.error(err.response?.data?.detail || 'Upload failed');
+                }
+                e.target.value = '';
+              }}
+            />
+          </label>
+        </div>
+        <details style={{ marginTop: 10, fontSize: 12, color: '#6b7280' }}>
+          <summary style={{ cursor: 'pointer' }}>CSV format</summary>
+          <pre style={{ background: '#f3f4f6', padding: 10, borderRadius: 6, marginTop: 6, fontSize: 11 }}>
+venue_name,room_number,floor,block,branch
+Apollo Hospital,Room 101,2nd Floor,Block A,Chennai</pre>
+        </details>
       </div>
 
       {loading ? (
@@ -194,14 +231,17 @@ export default function Interviews() {
               <div className="form-group">
                 <label>Venue Name *</label>
                 {venues.length > 0 ? (
-                  <select
-                    required
-                    value={form.venue_name}
-                    onChange={e => setForm({ ...form, venue_name: e.target.value })}
-                  >
+                    <select
+                      required
+                      value={form.venue_name}
+                      onChange={e => {
+                        const opt = e.target.selectedOptions[0];
+                        setForm({ ...form, venue_name: e.target.value, venue_address: opt?.dataset?.address || '' });
+                      }}
+                    >
                     <option value="">— Select venue —</option>
                     {venues.map(v => (
-                      <option key={v.id} value={v.venue_name}>
+                      <option key={v.id} value={v.venue_name} data-address={v.address}>
                         {v.venue_name}{v.room_number ? ` · Room ${v.room_number}` : ''}{v.floor ? ` · ${v.floor}` : ''}
                       </option>
                     ))}
