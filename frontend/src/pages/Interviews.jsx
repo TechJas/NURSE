@@ -110,6 +110,24 @@ export default function Interviews() {
               }}
             />
           </label>
+          <button
+            onClick={() => {
+              const csv = `venue_name,room_number,floor,block,branch\nApollo Hospital,Room 101,2nd Floor,Block A,Chennai\n`;
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'venue_sample.csv'; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: '#f0fdf4', color: '#166534',
+              border: '1px solid #86efac', padding: '7px 16px',
+              borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            }}
+          >
+            📥 Sample CSV
+          </button>
         </div>
         <details style={{ marginTop: 10, fontSize: 12, color: '#6b7280' }}>
           <summary style={{ cursor: 'pointer' }}>CSV format</summary>
