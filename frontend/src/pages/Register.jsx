@@ -69,7 +69,7 @@ export default function RegisterPage() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Registration Number *</label>
+              <label>License Number *</label>
               <input placeholder="NMC-123456" {...register('registration_number', { required: 'Required' })} />
               {errors.registration_number && <span className="error-msg">{errors.registration_number.message}</span>}
             </div>

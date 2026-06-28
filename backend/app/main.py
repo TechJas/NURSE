@@ -66,6 +66,7 @@ app.add_middleware(
         "http://127.0.0.1:8000",
         "https://nurse-wvfe.onrender.com",
         "https://nurse-platform.vercel.app",
+        "https://marvelous-dango-21acdf.netlify.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
