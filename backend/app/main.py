@@ -123,6 +123,10 @@ app.include_router(export.router, tags=["Export"])
 def health():
     return {"status": "ok"}
 
+@app.head("/health")
+def health_head():
+    return Response(status_code=200, headers={"Content-Type": "application/json"})
+
 @app.get("/")
 def home():
     """Serve the nurse registration page by default"""
