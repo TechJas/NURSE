@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -119,9 +119,9 @@ app.include_router(hospital_admin.router, tags=["Hospital Admin"])
 app.include_router(dept_head.router, tags=["Dept Head"])
 app.include_router(export.router, tags=["Export"])
 
-@app.head("/")
-def home_head():
-    return Response(status_code=200)
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 @app.get("/")
 def home():
