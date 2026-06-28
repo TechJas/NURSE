@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.responses import Response as StarletteResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -125,7 +126,7 @@ def health():
 
 @app.head("/health")
 def health_head():
-    return Response(status_code=200, headers={"Content-Type": "application/json"})
+    return StarletteResponse(status_code=200)
 
 @app.get("/")
 def home():
