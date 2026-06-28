@@ -104,7 +104,8 @@ export default function Interviews() {
                   toast.success('Venues uploaded!');
                   fetchAll();
                 } catch (err) {
-                  toast.error(err.response?.data?.detail || 'Upload failed');
+                  const msg = err.response?.data?.detail;
+                  toast.error(Array.isArray(msg) ? msg.map(m => m.msg || m).join(', ') : msg || 'Upload failed');
                 }
                 e.target.value = '';
               }}
