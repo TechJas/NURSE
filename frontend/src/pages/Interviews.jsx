@@ -261,7 +261,7 @@ Apollo Hospital,Room 101,2nd Floor,Block A,Chennai</pre>
                     <option value="">— Select venue —</option>
                     {venues.map(v => (
                       <option key={v.id} value={v.venue_name} data-address={v.address}>
-                        {v.venue_name}{v.room_number ? ` · Room ${v.room_number}` : ''}{v.floor ? ` · ${v.floor}` : ''}
+                        {v.type === 'hospital' ? '🏥 ' : ''}{v.venue_name}{v.room_number ? ` · Room ${v.room_number}` : ''}{v.floor ? ` · ${v.floor}` : ''}
                       </option>
                     ))}
                   </select>

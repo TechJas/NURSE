@@ -736,6 +736,17 @@ def submit_interview_result(
     result = data["result"]  # "selected" or "not_selected"
 
     if result == "selected":
+        # Link nurse to hospital from interview location
+        latest_interview = db.query(Interview).filter(
+            Interview.nurse_id == nurse_uuid
+        ).order_by(Interview.created_at.desc()).first()
+        if latest_interview and latest_interview.location:
+            matched_hosp = db.query(Hospital).filter(
+                Hospital.name.ilike(latest_interview.location)
+            ).first()
+            if matched_hosp:
+                nurse.hospital_id = matched_hosp.id
+
         # Generate CARE ID in format CARE-20YY-XXXX
         year_short = str(datetime.now().year)[-2:]        # e.g. "26"
         four_digit  = str(random.randint(1000, 9999))     # e.g. "4821"
@@ -990,19 +1001,31 @@ def get_venues(
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_admin_user)
 ):
-    """Return CSV-uploaded venue master records for interview session dropdown."""
+    """Return VenueMaster records + Hospital names for interview session dropdown."""
     venues = db.query(VenueMaster).order_by(VenueMaster.venue_name).all()
-    return [
-        {
-            "id":           str(v.id),
-            "venue_name":   v.venue_name,
-            "address":      v.branch or "",
-            "room_number":  v.room_number or "",
-            "floor":        v.floor or "",
-            "block":        v.block or "",
-        }
-        for v in venues
-    ]
+    hospitals = db.query(Hospital).order_by(Hospital.name).all()
+    result = []
+    for v in venues:
+        result.append({
+            "id":         str(v.id),
+            "venue_name": v.venue_name,
+            "address":    v.branch or "",
+            "room_number": v.room_number or "",
+            "floor":      v.floor or "",
+            "block":      v.block or "",
+            "type":       "venue",
+        })
+    for h in hospitals:
+        result.append({
+            "id":         f"hosp_{h.id}",
+            "venue_name": h.name,
+            "address":    f"{h.city}, {h.state}" if h.city or h.state else "",
+            "room_number": "",
+            "floor":      "",
+            "block":      "",
+            "type":       "hospital",
+        })
+    return result
 
 
 # ========== CARE ID EMAIL SENDING (Step 8) ==========

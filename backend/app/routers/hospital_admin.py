@@ -43,8 +43,10 @@ def get_hospital_stats(
     """Overview stats for the hospital admin's hospital."""
     hospital_id = current_admin.get("hospital_id")
 
-    # All active nurses in this hospital (scoped by specialization if hospital_id set)
+    # All active nurses in this hospital
     nurse_query = db.query(Nurse).filter(Nurse.care_id_verified == True)
+    if hospital_id:
+        nurse_query = nurse_query.filter(Nurse.hospital_id == uuid.UUID(hospital_id))
     active_nurses = nurse_query.all()
 
     def _hospital_filter(query):
@@ -67,7 +69,10 @@ def get_hospital_stats(
         nurses_in_dept = db.query(Nurse).filter(
             Nurse.care_id_verified == True,
             Nurse.specialization.ilike(f"%{spec}%")
-        ).count()
+        )
+        if hospital_id:
+            nurses_in_dept = nurses_in_dept.filter(Nurse.hospital_id == uuid.UUID(hospital_id))
+        nurses_in_dept = nurses_in_dept.count()
         tasks_in_dept = base_task.filter(
             ShiftAssignment.specialization_required.ilike(f"%{spec}%")
         ).count()
@@ -100,6 +105,8 @@ def get_hospital_nurses(
     current_admin: dict = Depends(get_current_hospital_admin)
 ):
     query = db.query(Nurse).filter(Nurse.care_id_verified == True)
+    if current_admin.get("hospital_id"):
+        query = query.filter(Nurse.hospital_id == uuid.UUID(current_admin["hospital_id"]))
     if specialization and specialization != "All":
         query = query.filter(Nurse.specialization.ilike(f"%{specialization}%"))
     if search:

@@ -80,6 +80,8 @@ def get_dept_nurses(
         Nurse.care_id_verified == True,
         Nurse.specialization.ilike(f"%{dept}%")
     )
+    if current.get("hospital_id"):
+        query = query.filter(Nurse.hospital_id == uuid.UUID(current["hospital_id"]))
     if search:
         query = query.filter(Nurse.full_name.ilike(f"%{search}%"))
     nurses = query.order_by(Nurse.full_name).all()

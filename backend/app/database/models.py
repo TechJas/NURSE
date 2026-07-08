@@ -76,6 +76,7 @@ class Nurse(Base):
     rejection_reason = Column(Text, nullable=True)
     location_preference = Column(String, nullable=True)
     experience_years = Column(Integer, nullable=True)
+    hospital_id = Column(UUID, ForeignKey("hospitals.id"), nullable=True)  # set on interview pass
 
     # Onboarding pipeline fields
     shift_unlocked = Column(Boolean, default=False)
