@@ -612,12 +612,21 @@ def create_interview_session(
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_admin_user)
 ):
+    # If the selected venue is a hospital, store its ID
+    venue_hospital_id = data.get("hospital_id")
+    if venue_hospital_id:
+        try:
+            venue_hospital_id = uuid.UUID(venue_hospital_id)
+        except Exception:
+            venue_hospital_id = None
+
     session = InterviewSession(
         venue_name=data["venue_name"],
         venue_address=data.get("venue_address"),
         interview_date=data["interview_date"],
         interview_time=data["interview_time"],
         instructions=data.get("instructions"),
+        hospital_id=venue_hospital_id,
         created_by=current_admin["id"],
     )
     db.add(session)

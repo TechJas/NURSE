@@ -82,6 +82,9 @@ class Nurse(Base):
     shift_unlocked = Column(Boolean, default=False)
     unlock_key_hash = Column(String, nullable=True)
 
+    # Hospital association (set when nurse passes interview at a hospital venue)
+    hospital_id = Column(UUID, ForeignKey("hospitals.id"), nullable=True)
+
     # CARE ID fields
     care_id = Column(String, nullable=True)                    # plain CARE-2026-4821
     care_id_verified = Column(Boolean, default=False)          # True after one correct entry
@@ -180,6 +183,7 @@ class InterviewSession(Base):
     interview_date = Column(Date, nullable=False)
     interview_time = Column(String, nullable=False)       # "10:00 AM"
     instructions = Column(Text, nullable=True)
+    hospital_id = Column(UUID, ForeignKey("hospitals.id"), nullable=True)  # set when venue is a hospital
     created_by = Column(UUID, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 

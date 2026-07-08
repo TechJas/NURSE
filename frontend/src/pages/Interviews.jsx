@@ -14,7 +14,7 @@ export default function Interviews() {
 
   // Create session form
   const [showForm, setShowForm] = useState(false);
-  const [form,     setForm]     = useState({ venue_name: '', venue_address: '', interview_date: '', instructions: '' });
+  const [form,     setForm]     = useState({ venue_name: '', venue_address: '', interview_date: '', instructions: '', hospital_id: '' });
   const [hour,     setHour]     = useState('10');
   const [min,      setMin]      = useState('00');
   const [period,   setPeriod]   = useState('AM');
@@ -51,7 +51,7 @@ export default function Interviews() {
       toast.success('Interview session created!');
       fetchAll();
       setShowForm(false);
-      setForm({ venue_name: '', venue_address: '', interview_date: '', instructions: '' });
+      setForm({ venue_name: '', venue_address: '', interview_date: '', instructions: '', hospital_id: '' });
       setHour('10'); setMin('00'); setPeriod('AM');
     } catch (e) { toast.error(e.response?.data?.detail || 'Failed to create session'); }
   };
@@ -255,12 +255,17 @@ Apollo Hospital,Room 101,2nd Floor,Block A,Chennai</pre>
                       value={form.venue_name}
                       onChange={e => {
                         const opt = e.target.selectedOptions[0];
-                        setForm({ ...form, venue_name: e.target.value, venue_address: opt?.dataset?.address || '' });
+                        setForm({
+                          ...form,
+                          venue_name: e.target.value,
+                          venue_address: opt?.dataset?.address || '',
+                          hospital_id: opt?.dataset?.hospitalId || '',
+                        });
                       }}
                     >
                     <option value="">— Select venue —</option>
                     {venues.map(v => (
-                      <option key={v.id} value={v.venue_name} data-address={v.address}>
+                      <option key={v.id} value={v.venue_name} data-address={v.address} data-hospital-id={v.type === 'hospital' ? v.id.replace('hosp_', '') : ''}>
                         {v.type === 'hospital' ? '🏥 ' : ''}{v.venue_name}{v.room_number ? ` · Room ${v.room_number}` : ''}{v.floor ? ` · ${v.floor}` : ''}
                       </option>
                     ))}
