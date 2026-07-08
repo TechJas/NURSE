@@ -47,7 +47,7 @@ export default function LoginPage() {
     <div className="auth-layout">
       <div className="auth-card">
         <div className="auth-logo">
-          <h1>🏥 MediLogistics</h1>
+          <h1>🏥 Carenium Nurse Portal</h1>
           <p>Nurse Platform — Secure Sign In</p>
         </div>
 
