@@ -46,28 +46,17 @@ def get_dept_stats(
         Nurse.specialization.ilike(f"%{dept}%")
     ).count()
 
-    total_tasks = db.query(ShiftAssignment).filter(
+    base_task = db.query(ShiftAssignment).filter(
         ShiftAssignment.task_title != None,
-        ShiftAssignment.specialization_required.ilike(f"%{dept}%")
-    ).count()
+        ShiftAssignment.specialization_required.ilike(f"%{dept}%"),
+    )
+    if current.get("hospital_id"):
+        base_task = base_task.filter(ShiftAssignment.hospital_id == uuid.UUID(current["hospital_id"]))
 
-    pending = db.query(ShiftAssignment).filter(
-        ShiftAssignment.task_title != None,
-        ShiftAssignment.task_status == "assigned",
-        ShiftAssignment.specialization_required.ilike(f"%{dept}%")
-    ).count()
-
-    acknowledged = db.query(ShiftAssignment).filter(
-        ShiftAssignment.task_title != None,
-        ShiftAssignment.task_status == "acknowledged",
-        ShiftAssignment.specialization_required.ilike(f"%{dept}%")
-    ).count()
-
-    tasks_today = db.query(ShiftAssignment).filter(
-        ShiftAssignment.task_title != None,
-        ShiftAssignment.shift_date == _date.today(),
-        ShiftAssignment.specialization_required.ilike(f"%{dept}%")
-    ).count()
+    total_tasks     = base_task.count()
+    pending         = base_task.filter(ShiftAssignment.task_status == "assigned").count()
+    acknowledged    = base_task.filter(ShiftAssignment.task_status == "acknowledged").count()
+    tasks_today     = base_task.filter(ShiftAssignment.shift_date == _date.today()).count()
 
     return {
         "department":   dept,
@@ -154,6 +143,7 @@ def assign_dept_task(
         task_status             = "assigned",
         specialization_required = dept,
         assigned_by             = current.get("email", "dept_head"),
+        hospital_id             = uuid.UUID(current["hospital_id"]) if current.get("hospital_id") else None,
     )
     db.add(task)
     db.commit()
@@ -192,8 +182,10 @@ def list_dept_tasks(
         Nurse, ShiftAssignment.nurse_id == Nurse.id
     ).filter(
         ShiftAssignment.task_title != None,
-        ShiftAssignment.specialization_required.ilike(f"%{dept}%")
+        ShiftAssignment.specialization_required.ilike(f"%{dept}%"),
     )
+    if current.get("hospital_id"):
+        query = query.filter(ShiftAssignment.hospital_id == uuid.UUID(current["hospital_id"]))
     if task_status:
         query = query.filter(ShiftAssignment.task_status == task_status)
 

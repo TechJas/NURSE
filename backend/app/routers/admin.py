@@ -798,12 +798,17 @@ def create_shift(
     if not nurse:
         raise HTTPException(status_code=404, detail="Nurse not found")
 
+    task_hospital_id = None
+    if current_admin.get("admin_role") in ("hospital_admin", "dept_head") and current_admin.get("hospital_id"):
+        task_hospital_id = uuid.UUID(current_admin["hospital_id"])
+
     shift = ShiftAssignment(
         nurse_id=nurse_uuid,
         shift_date=data["shift_date"],
         shift_time=data["shift_time"],
         location=data["location"],
         task_notes=data.get("task_notes"),
+        hospital_id=task_hospital_id,
     )
     db.add(shift)
     db.commit()
@@ -1208,6 +1213,11 @@ def assign_task(
     if shift_date < _date.today():
         raise HTTPException(400, "Cannot assign a task on a past date.")
 
+    # Derive hospital_id from the admin's hospital context (null for platform_admin)
+    task_hospital_id = None
+    if current_admin.get("admin_role") in ("hospital_admin", "dept_head") and current_admin.get("hospital_id"):
+        task_hospital_id = uuid.UUID(current_admin["hospital_id"])
+
     task = ShiftAssignment(
         nurse_id                = nurse_uuid,
         shift_date              = shift_date,
@@ -1222,6 +1232,7 @@ def assign_task(
         task_status             = "assigned",
         specialization_required = spec_required,
         assigned_by             = current_admin.get("email", "admin"),
+        hospital_id             = task_hospital_id,
     )
     db.add(task)
     db.commit()
@@ -1322,11 +1333,16 @@ def create_hospital_admin(
     _chars = _string.ascii_letters + _string.digits + "!@#$%^&*()-_=+"
     plain_password = ''.join(secrets.choice(_chars) for _ in range(15))
 
+    # Look up hospital_id by name so the account is linked to the hospitals table
+    matched_hospital = db.query(Hospital).filter(Hospital.name.ilike(hospital_name)).first()
+    resolved_hospital_id = matched_hospital.id if matched_hospital else None
+
     hospital_admin = User(
         email               = email,
         password            = hash_password(plain_password),
         role                = "admin",
         admin_role          = "hospital_admin",
+        hospital_id         = resolved_hospital_id,
         hospital_name       = hospital_name,
         full_name           = full_name,
         is_active           = False,          # Pending verification by Platform Admin

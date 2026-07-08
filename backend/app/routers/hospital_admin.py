@@ -47,12 +47,18 @@ def get_hospital_stats(
     nurse_query = db.query(Nurse).filter(Nurse.care_id_verified == True)
     active_nurses = nurse_query.all()
 
-    total_tasks     = db.query(ShiftAssignment).filter(
-        ShiftAssignment.task_title != None
-    ).count()
+    def _hospital_filter(query):
+        if hospital_id:
+            return query.filter(ShiftAssignment.hospital_id == uuid.UUID(hospital_id))
+        return query
 
-    tasks_today     = db.query(ShiftAssignment).filter(
-        ShiftAssignment.task_title != None,
+    base_task = _hospital_filter(
+        db.query(ShiftAssignment).filter(ShiftAssignment.task_title != None)
+    )
+
+    total_tasks     = base_task.count()
+
+    tasks_today     = base_task.filter(
         ShiftAssignment.shift_date == _date.today()
     ).count()
 
@@ -62,14 +68,12 @@ def get_hospital_stats(
             Nurse.care_id_verified == True,
             Nurse.specialization.ilike(f"%{spec}%")
         ).count()
-        tasks_in_dept = db.query(ShiftAssignment).filter(
-            ShiftAssignment.task_title != None,
+        tasks_in_dept = base_task.filter(
             ShiftAssignment.specialization_required.ilike(f"%{spec}%")
         ).count()
-        pending_in_dept = db.query(ShiftAssignment).filter(
-            ShiftAssignment.task_title != None,
-            ShiftAssignment.task_status == "assigned",
-            ShiftAssignment.specialization_required.ilike(f"%{spec}%")
+        pending_in_dept = base_task.filter(
+            ShiftAssignment.specialization_required.ilike(f"%{spec}%"),
+            ShiftAssignment.task_status == "assigned"
         ).count()
         dept_stats.append({
             "department":   spec,
@@ -125,6 +129,8 @@ def list_hospital_tasks(
         Nurse, ShiftAssignment.nurse_id == Nurse.id
     ).filter(ShiftAssignment.task_title != None)
 
+    if current_admin.get("hospital_id"):
+        query = query.filter(ShiftAssignment.hospital_id == uuid.UUID(current_admin["hospital_id"]))
     if specialization and specialization != "All":
         query = query.filter(ShiftAssignment.specialization_required.ilike(f"%{specialization}%"))
     if task_status:
@@ -204,7 +210,12 @@ def list_dept_heads(
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_hospital_admin)
 ):
-    heads = db.query(User).filter(User.admin_role == "dept_head").all()
+    heads = db.query(User).filter(
+        User.admin_role == "dept_head",
+    )
+    if current_admin.get("hospital_id"):
+        heads = heads.filter(User.hospital_id == uuid.UUID(current_admin["hospital_id"]))
+    heads = heads.all()
     return [
         {
             "id":         str(h.id),

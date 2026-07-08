@@ -201,6 +201,7 @@ class ShiftAssignment(Base):
     task_status             = Column(String, default="assigned")   # "assigned" / "acknowledged" / "completed"
     specialization_required = Column(String, nullable=True)        # "Emergency"
     assigned_by             = Column(String, nullable=True)        # admin email
+    hospital_id             = Column(UUID, ForeignKey("hospitals.id"), nullable=True)  # scoped to hospital
     created_at              = Column(DateTime, server_default=func.now())
     updated_at              = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
