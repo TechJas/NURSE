@@ -3,12 +3,12 @@ from app.core.email import send_email
 from fastapi import BackgroundTasks
 
 def send_activation_email(email: str, background_tasks: BackgroundTasks):
-    subject = "Account Activated - MediLogistics"
+    subject = "Account Activated - Carenium"
     context = {"email": email}
     background_tasks.add_task(send_email, email, subject, "email/activation.html", context)
 
 def send_verification_email(email: str, full_name: str, background_tasks: BackgroundTasks):
-    subject = "KYC Verified - MediLogistics"
+    subject = "KYC Verified - Carenium"
     context = {"name": full_name}
     background_tasks.add_task(send_email, email, subject, "email/verification.html", context)
 

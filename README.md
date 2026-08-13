@@ -1,4 +1,4 @@
-# MediLogistics - Nurse Registration Platform
+# Carenium - Nurse Registration Platform
 
 A professional and secure platform for nursing staff registration, KYC verification, and onboarding management.
 

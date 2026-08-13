@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
-import { useAuth } from '../context/AuthContext';
 import { getNurseProfile, getShiftInfo, getMyDocuments } from '../api/endpoints';
 import toast from 'react-hot-toast';
+import {
+  DocumentsIcon, KeyIcon, CalendarIcon, NurseIcon, InterviewIcon,
+  TaskIcon, IDIcon, CheckIcon, PulseIcon,
+} from '../components/BrandIcons';
 
 // ── Onboarding Steps ────────────────────────────────────────────────────────
 const STEPS = ['Pending', 'KYC Review', 'Interview', 'Active'];
@@ -21,14 +24,14 @@ function stepIndex(profile) {
 function shiftColor(time = '') {
   const t = time.toLowerCase();
   if (t.includes('morning') || t.startsWith('6') || t.startsWith('7'))
-    return { bg: '#eff6ff', border: '#93c5fd', label: '#1d4ed8', badge: 'Morning' };
+    return { bg: 'rgba(18,151,169,0.1)', border: 'rgba(18,151,169,0.4)', label: '#0B5E6B', badge: 'Morning' };
   if (t.includes('evening') || t.startsWith('2') || t.startsWith('14'))
-    return { bg: '#fff7ed', border: '#fdba74', label: '#c2410c', badge: 'Evening' };
+    return { bg: 'rgba(201,162,75,0.14)', border: 'rgba(201,162,75,0.45)', label: '#9C7B2E', badge: 'Evening' };
   if (t.includes('night') || t.startsWith('10') || t.startsWith('22'))
-    return { bg: '#faf5ff', border: '#c4b5fd', label: '#6d28d9', badge: 'Night' };
+    return { bg: 'rgba(20,43,61,0.08)', border: 'rgba(20,43,61,0.35)', label: '#142B3D', badge: 'Night' };
   if (t.includes('emergency'))
-    return { bg: '#fef2f2', border: '#fca5a5', label: '#b91c1c', badge: 'Emergency' };
-  return { bg: '#f0fdf4', border: '#86efac', label: '#166534', badge: 'Shift' };
+    return { bg: 'rgba(214,69,69,0.1)', border: 'rgba(214,69,69,0.4)', label: '#b32727', badge: 'Emergency' };
+  return { bg: 'rgba(11,94,107,0.08)', border: 'rgba(11,94,107,0.35)', label: '#0B5E6B', badge: 'Shift' };
 }
 
 // ── 3D Flip Nurse ID Card ───────────────────────────────────────────────────
@@ -48,23 +51,27 @@ function NurseIDCard({ card, nurse }) {
         {/* FRONT */}
         <div style={{
           position: 'absolute', inset: 0, borderRadius: 16, backfaceVisibility: 'hidden',
-          background: 'linear-gradient(135deg, #0f2f6e 0%, #1a6fa8 60%, #22b5c0 100%)',
-          padding: 22, boxShadow: '0 10px 32px rgba(15,47,110,0.3)',
+          background: 'linear-gradient(135deg, #0B5E6B 0%, #1297A9 70%, #0d4a56 140%)',
+          padding: 22, boxShadow: '0 10px 32px rgba(11,94,107,0.32)',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
         }}>
-          <div style={{ position: 'absolute', right: -24, top: -24, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+          <div style={{ position: 'absolute', right: -24, top: -24, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+          <div style={{ position: 'absolute', right: 70, bottom: -46, width: 120, height: 120, borderRadius: '50%', background: 'rgba(201,162,75,0.14)' }} />
           <div style={{ zIndex: 1 }}>
-            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>Carenium Health</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.7)', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>
+              <img src={`${import.meta.env.BASE_URL}carenium-logo.jpg`} alt="" style={{ width: 20, height: 20, borderRadius: 6, background: '#fff', padding: 2, objectFit: 'contain' }} />
+              Carenium Health
+            </div>
             <div style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1.2 }}>{card.nurse_name}</div>
-            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 3 }}>{card.assigned_position}</div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 3 }}>{card.assigned_position}</div>
           </div>
           <div style={{ zIndex: 1 }}>
-            <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 7, padding: '7px 12px', fontFamily: "'Courier New', monospace", letterSpacing: 3, color: '#fff', fontSize: 13, fontWeight: 700, marginBottom: 8, display: 'inline-block' }}>
+            <div style={{ background: 'rgba(0,0,0,0.28)', borderRadius: 7, padding: '7px 12px', fontFamily: "'Courier New', monospace", letterSpacing: 3, color: '#fff', fontSize: 13, fontWeight: 700, marginBottom: 8, display: 'inline-block' }}>
               {card.unique_id}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10 }}>Valid: {card.valid_from} — {card.valid_upto}</span>
-              <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10 }}>Tap to flip ↩</span>
+              <span style={{ color: 'rgba(201,162,75,0.9)', fontSize: 10, fontWeight: 600 }}>Tap to flip</span>
             </div>
           </div>
         </div>
@@ -72,8 +79,8 @@ function NurseIDCard({ card, nurse }) {
         <div style={{
           position: 'absolute', inset: 0, borderRadius: 16, backfaceVisibility: 'hidden',
           transform: 'rotateY(180deg)',
-          background: 'linear-gradient(135deg, #134e4a 0%, #0f766e 60%, #14b8a6 100%)',
-          padding: 22, boxShadow: '0 10px 32px rgba(15,78,74,0.3)',
+          background: 'linear-gradient(135deg, #142B3D 0%, #0B5E6B 90%)',
+          padding: 22, boxShadow: '0 10px 32px rgba(20,43,61,0.32)',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         }}>
           <div>
@@ -94,11 +101,29 @@ function NurseIDCard({ card, nurse }) {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Valid: {card.valid_from} – {card.valid_upto}</span>
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>↩ Tap to flip</span>
+            <span style={{ color: 'rgba(201,162,75,0.85)', fontSize: 10, fontWeight: 600 }}>Tap to flip</span>
           </div>
         </div>
       </div>
-      <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>🪪 Tap the card to see front / back</p>
+      <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <IDIcon size={13} /> Tap the card to see front / back
+      </p>
+    </div>
+  );
+}
+
+function OnboardingTimeline({ idx, allDone = false }) {
+  return (
+    <div className="status-steps">
+      {STEPS.map((step, i) => (
+        <div style={{ display: 'contents' }} key={step}>
+          {i > 0 && <div className={`step-line ${allDone || i < idx ? 'done' : ''}`} />}
+          <div className={`step ${allDone ? 'done' : i < idx ? 'done' : i + 1 === idx ? 'active' : ''}`}>
+            <div className="step-dot">{allDone || i < idx ? <CheckIcon size={12} /> : i + 1}</div>
+            <span className="step-label">{step}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -113,67 +138,57 @@ function Stage1View({ profile, docs }) {
 
   return (
     <>
-      {/* Welcome */}
-      <div style={{ background: 'linear-gradient(120deg,#0f2f6e,#1a6fa8)', borderRadius: 14, padding: '18px 24px', marginBottom: 22, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="hero-card">
         <div>
-          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 3 }}>Welcome back 👋</div>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{profile?.full_name || profile?.email}</div>
-          <div style={{ fontSize: 12, opacity: 0.75, marginTop: 3 }}>Account Status: <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 4, padding: '1px 8px', fontWeight: 700 }}>KYC Pending</span></div>
+          <div className="hero-kicker">Welcome back</div>
+          <div className="hero-title">{profile?.full_name || profile?.email}</div>
+          <div className="hero-sub">Account status: KYC onboarding in progress</div>
+          <span className="hero-status"><PulseIcon size={13} /> KYC Pending</span>
         </div>
-        <div style={{ fontSize: 40 }}>📋</div>
+        <div className="hero-icon"><DocumentsIcon size={44} /></div>
       </div>
 
       {/* Onboarding Progress */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h2>📍 Onboarding Progress</h2></div>
+        <div className="card-header"><h2>Onboarding Progress</h2></div>
         <div className="card-body">
-          <div className="status-steps">
-            {STEPS.map((step, i) => (
-              <div style={{ display: 'contents' }} key={step}>
-                {i > 0 && <div className={`step-line ${i < idx ? 'done' : ''}`} />}
-                <div className={`step ${i < idx ? 'done' : i + 1 === idx ? 'active' : ''}`}>
-                  <div className="step-dot">{i < idx ? '✓' : i + 1}</div>
-                  <span className="step-label">{step}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OnboardingTimeline idx={idx} />
         </div>
       </div>
 
       {/* Document Status */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h2>📄 Document Upload Status</h2></div>
+        <div className="card-header"><h2>Document Upload Status</h2></div>
         <div className="card-body">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: allUploaded ? '#166534' : '#c2410c' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: allUploaded ? 'var(--brand-teal)' : 'var(--brand-gold-deep)' }}>
                 {uploadedDocs} / {totalDocs}
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Documents uploaded</div>
             </div>
             <div style={{
               padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700,
-              background: allUploaded ? '#f0fdf4' : '#fff7ed',
-              color: allUploaded ? '#166534' : '#c2410c',
-              border: `1px solid ${allUploaded ? '#86efac' : '#fed7aa'}`,
+              background: allUploaded ? 'rgba(11,94,107,0.08)' : 'rgba(201,162,75,0.14)',
+              color: allUploaded ? '#0B5E6B' : '#9C7B2E',
+              border: `1px solid ${allUploaded ? 'rgba(11,94,107,0.35)' : 'rgba(201,162,75,0.45)'}`,
             }}>
-              {allUploaded ? '✅ All documents submitted' : '⚠️ Incomplete — please upload all documents'}
+              {allUploaded ? 'All documents submitted' : 'Incomplete — please upload all documents'}
             </div>
           </div>
           {/* Progress bar */}
           <div style={{ marginTop: 14, height: 8, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${(uploadedDocs / totalDocs) * 100}%`, background: allUploaded ? '#22c55e' : '#f59e0b', borderRadius: 99, transition: 'width 0.5s' }} />
+            <div style={{ height: '100%', width: `${(uploadedDocs / totalDocs) * 100}%`, background: allUploaded ? 'linear-gradient(90deg,var(--brand-teal),var(--brand-cyan))' : 'linear-gradient(90deg,var(--brand-gold),var(--brand-gold-deep))', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="card">
-        <div className="card-header"><h2>⚡ Quick Actions</h2></div>
-        <div className="card-body" style={{ display: 'flex', gap: 12 }}>
-          <Link to="/documents" className="btn btn-primary">📄 Upload Documents</Link>
-          <Link to="/working-shift" className="btn btn-outline">🔒 Working Shift</Link>
+        <div className="card-header"><h2>Quick Actions</h2></div>
+        <div className="card-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <Link to="/documents" className="btn btn-primary"><DocumentsIcon size={16} /> Upload Documents</Link>
+          <Link to="/working-shift" className="btn btn-outline"><KeyIcon size={16} /> Working Shift</Link>
         </div>
       </div>
     </>
@@ -186,39 +201,29 @@ function Stage1bView({ profile }) {
 
   return (
     <>
-      {/* KYC Approved Banner */}
-      <div style={{ background: 'linear-gradient(120deg,#14532d,#16a34a)', borderRadius: 14, padding: '20px 26px', marginBottom: 22, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="hero-card">
         <div>
-          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 4 }}>Welcome, {profile?.full_name || profile?.email}</div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>✅ KYC Approved!</div>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Your identity documents have been verified. Awaiting interview scheduling.</div>
+          <div className="hero-kicker">Welcome, {profile?.full_name || profile?.email}</div>
+          <div className="hero-title">KYC Approved</div>
+          <div className="hero-sub">Your identity documents have been verified. Awaiting interview scheduling.</div>
+          <span className="hero-status"><CheckIcon size={13} /> Verified</span>
         </div>
-        <div style={{ fontSize: 44 }}>🎉</div>
+        <div className="hero-icon"><NurseIcon size={44} /></div>
       </div>
 
       {/* Onboarding Progress */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h2>📍 Onboarding Progress</h2></div>
+        <div className="card-header"><h2>Onboarding Progress</h2></div>
         <div className="card-body">
-          <div className="status-steps">
-            {STEPS.map((step, i) => (
-              <div style={{ display: 'contents' }} key={step}>
-                {i > 0 && <div className={`step-line ${i < idx ? 'done' : ''}`} />}
-                <div className={`step ${i < idx ? 'done' : i + 1 === idx ? 'active' : ''}`}>
-                  <div className="step-dot">{i < idx ? '✓' : i + 1}</div>
-                  <span className="step-label">{step}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OnboardingTimeline idx={idx} />
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="card">
-        <div className="card-header"><h2>⚡ Quick Actions</h2></div>
-        <div className="card-body" style={{ display: 'flex', gap: 12 }}>
-          <Link to="/working-shift" className="btn btn-outline">🔒 Working Shift</Link>
+        <div className="card-header"><h2>Quick Actions</h2></div>
+        <div className="card-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <Link to="/working-shift" className="btn btn-outline"><KeyIcon size={16} /> Working Shift</Link>
         </div>
       </div>
     </>
@@ -227,34 +232,35 @@ function Stage1bView({ profile }) {
 
 // ── Stage 2 — Awaiting CARE ID ──────────────────────────────────────────────
 function Stage2View({ profile }) {
-  const navigate  = useNavigate();
   const iStatus   = profile?.interview_status || 'PENDING';
   const isPassed  = ['PASSED', 'SELECTED'].includes(iStatus);
 
   return (
     <>
-      {/* KYC Approved Banner */}
-      <div style={{ background: 'linear-gradient(120deg,#14532d,#16a34a)', borderRadius: 14, padding: '20px 26px', marginBottom: 22, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="hero-card">
         <div>
-          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 4 }}>Welcome, {profile?.full_name || profile?.email}</div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>✅ KYC Approved!</div>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Your identity documents have been verified.</div>
+          <div className="hero-kicker">Welcome, {profile?.full_name || profile?.email}</div>
+          <div className="hero-title">KYC Approved</div>
+          <div className="hero-sub">Your identity documents have been verified.</div>
+          <span className="hero-status"><CheckIcon size={13} /> Verified</span>
         </div>
-        <div style={{ fontSize: 44 }}>🎉</div>
+        <div className="hero-icon"><InterviewIcon size={44} /></div>
       </div>
 
       {/* Interview Status */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h2>🗓 Interview Status</h2></div>
+        <div className="card-header"><h2>Interview Status</h2></div>
         <div className="card-body">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div style={{
               padding: '10px 20px', borderRadius: 10, fontWeight: 700, fontSize: 14,
-              background: isPassed ? '#f0fdf4' : '#fef3c7',
-              color:      isPassed ? '#166534' : '#92400e',
-              border: `1px solid ${isPassed ? '#86efac' : '#fcd34d'}`,
+              background: isPassed ? 'rgba(11,94,107,0.08)' : 'rgba(201,162,75,0.14)',
+              color:      isPassed ? '#0B5E6B' : '#9C7B2E',
+              border: `1px solid ${isPassed ? 'rgba(11,94,107,0.35)' : 'rgba(201,162,75,0.45)'}`,
+              display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              {isPassed ? '✅ Interview Passed / Selected' : `⏳ Status: ${iStatus}`}
+              {isPassed ? <CheckIcon size={15} /> : <PulseIcon size={15} />}
+              {isPassed ? 'Interview Passed / Selected' : `Status: ${iStatus}`}
             </div>
             {isPassed && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Check your notifications for your CARE ID status.</span>}
           </div>
@@ -263,19 +269,9 @@ function Stage2View({ profile }) {
 
       {/* Onboarding recap */}
       <div className="card">
-        <div className="card-header"><h2>📍 Your Journey</h2></div>
+        <div className="card-header"><h2>Your Journey</h2></div>
         <div className="card-body">
-          <div className="status-steps">
-            {STEPS.map((step, i) => (
-              <div style={{ display: 'contents' }} key={step}>
-                {i > 0 && <div className="step-line done" />}
-                <div className={`step ${i < 3 ? 'done' : 'active'}`}>
-                  <div className="step-dot">{i < 3 ? '✓' : '4'}</div>
-                  <span className="step-label">{step}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OnboardingTimeline idx={4} allDone />
         </div>
       </div>
     </>
@@ -293,83 +289,82 @@ function Stage3View({ profile, shiftData }) {
 
   return (
     <>
-      {/* Welcome Banner */}
-      <div style={{ background: 'linear-gradient(120deg,#0f2f6e 0%,#1a6fa8 100%)', borderRadius: 16, padding: '20px 28px', marginBottom: 22, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 24px rgba(15,47,110,0.2)' }}>
+      <div className="hero-card">
         <div>
-          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 4 }}>Welcome back 👋</div>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>{profile?.full_name || profile?.email}</div>
-          <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>{profile?.specialization || 'Carenium Staff Nurse'} · <span style={{ color: '#86efac', fontWeight: 700 }}>Full Access Active</span></div>
+          <div className="hero-kicker">Welcome back</div>
+          <div className="hero-title">{profile?.full_name || profile?.email}</div>
+          <div className="hero-sub">{profile?.specialization || 'Carenium Staff Nurse'}</div>
+          <span className="hero-status"><CheckIcon size={13} /> Full Access Active</span>
         </div>
-        <div style={{ fontSize: 48 }}>🏥</div>
+        <div className="hero-icon"><NurseIcon size={44} /></div>
       </div>
 
       {/* Collapsible KYC tracker */}
       <div style={{ marginBottom: 20 }}>
         <button
           onClick={() => setKycExpanded(e => !e)}
-          style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 600, color: '#166534', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          style={{
+            background: 'rgba(11,94,107,0.07)', border: '1px solid rgba(11,94,107,0.3)',
+            borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 600,
+            color: '#0B5E6B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+          }}
         >
-          ✅ Onboarding Complete — all 4 stages passed {kycExpanded ? '▲' : '▼'}
+          <CheckIcon size={14} /> Onboarding Complete — all 4 stages passed {kycExpanded ? '▲' : '▼'}
         </button>
         {kycExpanded && (
           <div className="card" style={{ marginTop: 10 }}>
             <div className="card-body">
-              <div className="status-steps">
-                {STEPS.map((step, i) => (
-                  <div style={{ display: 'contents' }} key={step}>
-                    {i > 0 && <div className="step-line done" />}
-                    <div className="step done">
-                      <div className="step-dot">✓</div>
-                      <span className="step-label">{step}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <OnboardingTimeline idx={4} allDone />
             </div>
           </div>
         )}
       </div>
 
       {/* 3 Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="stats-grid cols-3">
         {[
-          { icon: '📅', label: "Today's Shift", value: todayShift ? todayShift.shift_time : 'None Assigned', sub: todayShift ? todayShift.location : 'Check back later', color: '#eff6ff', border: '#93c5fd' },
-          { icon: '📋', label: 'Total Duties',  value: shifts.length, sub: 'Assigned shifts', color: '#f0fdf4', border: '#86efac' },
-          { icon: '⏰', label: 'Upcoming',       value: upcoming.length, sub: 'In your schedule', color: '#faf5ff', border: '#c4b5fd' },
-        ].map(s => (
-          <div key={s.label} style={{ background: s.color, border: `1px solid ${s.border}`, borderRadius: 14, padding: '16px 18px' }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>{s.label}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, margin: '4px 0', color: 'var(--text)' }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.sub}</div>
-          </div>
-        ))}
+          { icon: 'calendar', label: "Today's Shift", value: todayShift ? todayShift.shift_time : 'None Assigned', sub: todayShift ? todayShift.location : 'Check back later' },
+          { icon: 'task', label: 'Total Duties',  value: shifts.length, sub: 'Assigned shifts' },
+          { icon: 'pulse', label: 'Upcoming',       value: upcoming.length, sub: 'In your schedule' },
+        ].map(s => {
+          const Icon = s.icon === 'calendar' ? CalendarIcon : s.icon === 'task' ? TaskIcon : PulseIcon;
+          return (
+            <div key={s.label} className="stat-card">
+              <div className="stat-info">
+                <h3>{s.value}</h3>
+                <p>{s.label}</p>
+                <div className="stat-sub">{s.sub}</div>
+              </div>
+              <div className="stat-icon gold"><Icon size={22} /></div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ID Card + Upcoming Shifts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, marginBottom: 22 }}>
+      <div className="two-col-grid" style={{ marginBottom: 22 }}>
         <div className="card">
-          <div className="card-header"><h2>🪪 Your Nurse ID</h2></div>
+          <div className="card-header"><h2>Your Nurse ID</h2></div>
           <div className="card-body" style={{ paddingTop: 8 }}>
             {card ? <NurseIDCard card={card} nurse={profile} /> : <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ID card not available yet.</p>}
           </div>
         </div>
 
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2>📅 Upcoming Shifts</h2>
-            <Link to="/duty" style={{ fontSize: 12, color: 'var(--primary)', textDecoration: 'none' }}>View all →</Link>
+          <div className="card-header">
+            <h2>Upcoming Shifts</h2>
+            <Link to="/duty" style={{ fontSize: 12, color: 'var(--brand-cyan)', textDecoration: 'none', fontWeight: 600 }}>View all</Link>
           </div>
           <div className="card-body" style={{ padding: 0 }}>
             {upcoming.length === 0 ? (
               <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
+                <div style={{ fontSize: 28, marginBottom: 8, color: 'var(--brand-cyan)' }}><CalendarIcon size={30} /></div>
                 No upcoming shifts yet.<br />Admin will assign duties soon.
               </div>
             ) : upcoming.slice(0, 3).map((s, i) => {
               const col = shiftColor(s.shift_time);
               const isToday = s.shift_date === today;
-              const PBADGE = { emergency: { bg: '#fef2f2', color: '#b91c1c', icon: '🔴' }, urgent: { bg: '#fffbeb', color: '#92400e', icon: '🟡' }, routine: { bg: '#f0fdf4', color: '#166534', icon: '🟢' } };
+              const PBADGE = { emergency: { bg: 'rgba(214,69,69,0.1)', color: '#b32727', icon: '●' }, urgent: { bg: 'rgba(201,162,75,0.14)', color: '#9C7B2E', icon: '●' }, routine: { bg: 'rgba(11,94,107,0.08)', color: '#0B5E6B', icon: '●' } };
               const pb = PBADGE[s.priority] || PBADGE.routine;
               return (
                 <div key={s.id} style={{ padding: '12px 18px', borderBottom: i < Math.min(upcoming.length, 3) - 1 ? '1px solid var(--border)' : 'none', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -378,7 +373,7 @@ function Stage3View({ profile, shiftData }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                       <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text)' }}>
                         {new Date(s.shift_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        {isToday && <span style={{ marginLeft: 6, fontSize: 9, background: '#22c55e', color: '#fff', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>TODAY</span>}
+                        {isToday && <span style={{ marginLeft: 6, fontSize: 9, background: 'linear-gradient(90deg,var(--brand-gold),var(--brand-gold-deep))', color: 'var(--brand-navy)', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>TODAY</span>}
                       </span>
                       <span style={{ fontSize: 10, background: col.bg, color: col.label, border: `1px solid ${col.border}`, borderRadius: 5, padding: '1px 6px', fontWeight: 600 }}>{col.badge}</span>
                     </div>
@@ -388,7 +383,7 @@ function Stage3View({ profile, shiftData }) {
                         <span style={{ fontSize: 10, fontWeight: 700, background: pb.bg, color: pb.color, borderRadius: 5, padding: '1px 6px' }}>{pb.icon} {s.priority}</span>
                       </div>
                     )}
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>⏰ {s.shift_time} · 📍 {s.ward || s.location}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}><CalendarIcon size={11} /> {s.shift_time} · <span style={{ display: 'inline-block', verticalAlign: '-1px' }}><IDIcon size={11} /></span> {s.ward || s.location}</div>
                   </div>
                 </div>
               );
@@ -399,12 +394,12 @@ function Stage3View({ profile, shiftData }) {
 
       {/* Quick Actions */}
       <div className="card">
-        <div className="card-header"><h2>⚡ Quick Actions</h2></div>
+        <div className="card-header"><h2>Quick Actions</h2></div>
         <div className="card-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link to="/duty"      className="btn btn-primary">📋 View All Duties</Link>
-          <Link to="/documents" className="btn btn-outline">📄 My Documents</Link>
-          <Link to="/requests"  className="btn btn-outline">📦 Create Delivery Request</Link>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>🔒 Delivery requests are managed by your hospital admin</span>
+          <Link to="/duty"      className="btn btn-primary"><TaskIcon size={16} /> View All Duties</Link>
+          <Link to="/documents" className="btn btn-outline"><DocumentsIcon size={16} /> My Documents</Link>
+          <Link to="/requests"  className="btn btn-outline"><TaskIcon size={16} /> Create Delivery Request</Link>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Delivery requests are managed by your hospital admin</span>
         </div>
       </div>
     </>
@@ -427,11 +422,7 @@ export default function NurseDashboard() {
       .then(r => setDocs(Array.isArray(r.data) ? r.data : []))
       .catch(() => {});
 
-    Promise.all([profileReq, docsReq]).then(() => {
-      // Only load shift data if unlocked
-      const p = profile;
-      return;
-    }).finally(() => setLoading(false));
+    Promise.all([profileReq, docsReq]).finally(() => setLoading(false));
   }, []);
 
   // Load shift info once profile is known
@@ -446,7 +437,7 @@ export default function NurseDashboard() {
   if (loading) {
     return (
       <AppLayout title="My Dashboard">
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>Loading…</div>
+        <div className="page-loading"><span className="spinner" style={{ borderColor: 'rgba(11,94,107,0.25)', borderTopColor: 'var(--brand-teal)' }} /> Loading…</div>
       </AppLayout>
     );
   }

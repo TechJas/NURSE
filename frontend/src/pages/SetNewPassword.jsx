@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { resetPassword } from '../api/endpoints';
 import toast from 'react-hot-toast';
+import AuthLayout from '../layouts/AuthLayout';
+import { EyeIcon, EyeOffIcon } from '../components/BrandIcons';
 
 export default function SetNewPassword() {
   const { user, mustResetPassword, logout, clearMustReset } = useAuth();
   const navigate = useNavigate();
   const [f, setF] = useState({ new_password: '', confirm_password: '' });
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState({ new: false, confirm: false });
 
   useEffect(() => {
     if (!mustResetPassword) {
@@ -41,10 +44,11 @@ export default function SetNewPassword() {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
-    <div className="auth-layout">
+    <AuthLayout headline="Your credentials. Your control.">
       <div className="auth-card">
         <div className="auth-logo">
-          <h1>🏥 Carenium</h1>
+          <img src="/carenium-logo.jpg" alt="Carenium" />
+          <h1>CARE<em>NIUM</em></h1>
           <p>Set Your Permanent Password</p>
         </div>
 
@@ -55,34 +59,61 @@ export default function SetNewPassword() {
         <form onSubmit={e => { e.preventDefault(); submit(); }}>
           <div className="form-group">
             <label>Email</label>
-            <input type="email" value={user?.email || ''} disabled style={{ background: '#f9fafb' }} />
+            <input type="email" value={user?.email || ''} disabled style={{ background: '#f2f6f7' }} />
           </div>
 
           <div className="form-group">
             <label>New Password *</label>
-            <input type="password" placeholder="Min. 6 characters"
-              value={f.new_password} onChange={e => setF(p => ({ ...p, new_password: e.target.value }))} />
+            <div className="pw-field">
+              <input
+                type={showPw.new ? 'text' : 'password'}
+                placeholder="Min. 6 characters"
+                value={f.new_password}
+                onChange={e => setF(p => ({ ...p, new_password: e.target.value }))}
+              />
+              <button
+                type="button"
+                className="pw-toggle"
+                title={showPw.new ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPw(p => ({ ...p, new: !p.new }))}
+              >
+                {showPw.new ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label>Confirm New Password *</label>
-            <input type="password" placeholder="Re-enter new password"
-              value={f.confirm_password} onChange={e => setF(p => ({ ...p, confirm_password: e.target.value }))} />
+            <div className="pw-field">
+              <input
+                type={showPw.confirm ? 'text' : 'password'}
+                placeholder="Re-enter new password"
+                value={f.confirm_password}
+                onChange={e => setF(p => ({ ...p, confirm_password: e.target.value }))}
+              />
+              <button
+                type="button"
+                className="pw-toggle"
+                title={showPw.confirm ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPw(p => ({ ...p, confirm: !p.confirm }))}
+              >
+                {showPw.confirm ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
           </div>
 
           <button className="btn btn-primary btn-full mt-2" type="submit" disabled={busy}>
-            {busy ? <><span className="spinner" /> Setting Password…</> : '🔑 Set Password & Continue'}
+            {busy ? <><span className="spinner" /> Setting Password…</> : 'Set Password & Continue'}
           </button>
         </form>
 
-        <hr className="divider" />
+        <hr className="auth-divider" />
         <p className="text-muted text-small" style={{ textAlign: 'center' }}>
-          <button onClick={handleLogout}
-            style={{ background:'none', border:'none', color:'var(--primary-light)', fontWeight:600, cursor:'pointer', fontSize:'inherit' }}>
+          <button onClick={handleLogout} className="auth-link">
             Sign Out
           </button>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

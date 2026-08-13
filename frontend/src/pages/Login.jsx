@@ -4,12 +4,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/endpoints';
 import toast from 'react-hot-toast';
+import AuthLayout from '../layouts/AuthLayout';
+import { EyeIcon, EyeOffIcon, LockIcon } from '../components/BrandIcons';
 
 export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -44,15 +47,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-layout">
+    <AuthLayout headline="Care that moves with technology.">
       <div className="auth-card">
         <div className="auth-logo">
-          <h1>🏥 Carenium Nurse Portal</h1>
+          <img src="/carenium-logo.jpg" alt="Carenium" />
+          <h1>CARE<em>NIUM</em></h1>
           <p>Nurse Platform — Secure Sign In</p>
         </div>
 
-        <div className="alert alert-info">
-          <span>🔒 Your session is protected and expires after 60 minutes of inactivity.</span>
+        <div className="auth-lock-note">
+          <LockIcon size={15} />
+          <span>Your session is protected and expires after 60 minutes of inactivity.</span>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -68,11 +73,21 @@ export default function LoginPage() {
 
           <div className="form-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              {...register('password', { required: 'Password is required' })}
-            />
+            <div className="pw-field">
+              <input
+                type={showPw ? 'text' : 'password'}
+                placeholder="••••••••"
+                {...register('password', { required: 'Password is required' })}
+              />
+              <button
+                type="button"
+                className="pw-toggle"
+                title={showPw ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPw(v => !v)}
+              >
+                {showPw ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
             {errors.password && <span className="error-msg">{errors.password.message}</span>}
           </div>
 
@@ -81,14 +96,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <hr className="divider" />
+        <hr className="auth-divider" />
         <p className="text-muted text-small" style={{ textAlign: 'center' }}>
           Not registered?{' '}
-          <Link to="/register" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>
+          <Link to="/register" className="auth-link">
             Create Account
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

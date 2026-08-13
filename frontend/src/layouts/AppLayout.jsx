@@ -2,42 +2,61 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getMyNotifications, markNotificationRead } from '../api/endpoints';
+import {
+  DashboardIcon, DocumentsIcon, KeyIcon, CalendarIcon, SettingsIcon, NurseIcon,
+  InterviewIcon, IDIcon, HospitalIcon, UserIcon, TaskIcon,
+  BellIcon, MenuIcon, LogOutIcon, LockIcon,
+} from '../components/BrandIcons';
 
 // Nurse sidebar — items adapt based on access level
 const nurseNav = [
-  { to: '/dashboard',     label: 'Dashboard',        icon: '📊', locked: false },
-  { to: '/documents',     label: 'My Documents',      icon: '📄', locked: false },
-  { to: '/requests',      label: 'Delivery Requests', icon: '📦', locked: true  },
-  { to: '/working-shift', label: 'Working Shift',     icon: '🔒', locked: false },
-  { to: '/duty',          label: 'My Duty',           icon: '📋', shiftOnly: true },
-  { to: '/profile',       label: 'Profile Settings',  icon: '⚙️', locked: false },
+  { to: '/dashboard',     label: 'Dashboard',        icon: 'dashboard',  locked: false },
+  { to: '/documents',     label: 'My Documents',      icon: 'documents',  locked: false },
+  { to: '/requests',      label: 'Delivery Requests', icon: 'task',       locked: true  },
+  { to: '/working-shift', label: 'Working Shift',     icon: 'key',        locked: false },
+  { to: '/duty',          label: 'My Duty',           icon: 'calendar',   shiftOnly: true },
+  { to: '/profile',       label: 'Profile Settings',  icon: 'settings',   locked: false },
 ];
 
 const adminNav = [
-  { to: '/admin',                label: 'Dashboard',            icon: '📊' },
-  { to: '/admin/nurses',         label: 'Nurse Registry',       icon: '👩‍⚕️' },
-  { to: '/admin/interviews',     label: 'Interviews',           icon: '🗓️' },
-  { to: '/admin/hospital-admins', label: 'Hospital Admins',     icon: '🏥' },
-  { to: '/admin/system-id',      label: 'System ID Generation', icon: '🪪' },
-  { to: '/profile',              label: 'Profile Settings',     icon: '⚙️' },
+  { to: '/admin',                 label: 'Dashboard',            icon: 'dashboard' },
+  { to: '/admin/nurses',          label: 'Nurse Registry',       icon: 'nurse' },
+  { to: '/admin/interviews',      label: 'Interviews',           icon: 'interview' },
+  { to: '/admin/hospital-admins', label: 'Hospital Admins',      icon: 'hospital' },
+  { to: '/admin/system-id',       label: 'System ID Generation', icon: 'id' },
+  { to: '/profile',               label: 'Profile Settings',     icon: 'settings' },
 ];
 
-const profileLink = { to: '/profile', label: 'Profile Settings', icon: '⚙️' };
+const profileLink = { to: '/profile', label: 'Profile Settings', icon: 'settings' };
 
 const hospitalAdminNav = [
-  { to: '/hospital-admin',            label: 'Dashboard',   icon: '🏥' },
-  { to: '/hospital-admin/nurses',     label: 'Nurses',      icon: '👩‍⚕️' },
-  { to: '/hospital-admin/tasks',      label: 'Task History', icon: '📋' },
-  { to: '/hospital-admin/dept-heads', label: 'Dept Heads',  icon: '👤' },
+  { to: '/hospital-admin',            label: 'Dashboard',   icon: 'hospital' },
+  { to: '/hospital-admin/nurses',     label: 'Nurses',      icon: 'nurse' },
+  { to: '/hospital-admin/tasks',      label: 'Task History', icon: 'task' },
+  { to: '/hospital-admin/dept-heads', label: 'Dept Heads',  icon: 'user' },
   profileLink,
 ];
 
 const deptHeadNav = [
-  { to: '/dept',       label: 'Dashboard',    icon: '🩺' },
-  { to: '/dept/nurses', label: 'My Nurses',   icon: '👩‍⚕️' },
-  { to: '/dept/tasks',  label: 'Task History', icon: '📋' },
+  { to: '/dept',       label: 'Dashboard',    icon: 'dashboard' },
+  { to: '/dept/nurses', label: 'My Nurses',   icon: 'nurse' },
+  { to: '/dept/tasks',  label: 'Task History', icon: 'task' },
   profileLink,
 ];
+
+const NAV_ICONS = {
+  dashboard:  DashboardIcon,
+  documents:  DocumentsIcon,
+  key:        KeyIcon,
+  calendar:   CalendarIcon,
+  settings:   SettingsIcon,
+  nurse:      NurseIcon,
+  interview:  InterviewIcon,
+  id:         IDIcon,
+  hospital:   HospitalIcon,
+  user:       UserIcon,
+  task:       TaskIcon,
+};
 
 // Route to navigate to when a notification is clicked
 function notifRoute(type = '') {
@@ -46,6 +65,14 @@ function notifRoute(type = '') {
   if (['shift_assigned', 'duty_assigned'].includes(type))
     return '/duty';
   return '/dashboard';
+}
+
+function notifIcon(type = '') {
+  if (type.includes('kyc')) return <DocumentsIcon size={16} />;
+  if (type.includes('reupload')) return <LockIcon size={16} />;
+  if (type.includes('shift') || type.includes('duty')) return <CalendarIcon size={16} />;
+  if (type.includes('interview')) return <InterviewIcon size={16} />;
+  return <BellIcon size={16} />;
 }
 
 // ── Notification Bell Dropdown ──────────────────────────────────────────────
@@ -89,97 +116,50 @@ function NotificationBell() {
     <div ref={ref} style={{ position: 'relative' }}>
       {/* Bell button */}
       <button
+        className="notif-bell"
         onClick={() => { setOpen(o => !o); load(); }}
-        style={{
-          position: 'relative', background: 'none', border: 'none',
-          cursor: 'pointer', padding: '6px 8px', borderRadius: 8,
-          fontSize: 20, lineHeight: 1, color: 'var(--text)',
-          transition: 'background 0.15s',
-        }}
         title="Notifications"
       >
-        🔔
+        <BellIcon size={20} />
         {unread > 0 && (
-          <span style={{
-            position: 'absolute', top: 2, right: 2,
-            background: '#ef4444', color: '#fff',
-            fontSize: 9, fontWeight: 800, borderRadius: '50%',
-            minWidth: 16, height: 16, display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            border: '2px solid #fff', lineHeight: 1,
-          }}>
-            {unread > 9 ? '9+' : unread}
-          </span>
+          <span className="notif-dot">{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
 
       {/* Dropdown panel */}
       {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-          width: 340, maxHeight: 400, overflowY: 'auto',
-          background: '#fff', borderRadius: 14,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          border: '1px solid var(--border)', zIndex: 1000,
-        }}>
+        <div className="notif-panel">
           {/* Header */}
-          <div style={{
-            padding: '14px 18px', borderBottom: '1px solid var(--border)',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          }}>
-            <span style={{ fontWeight: 700, fontSize: 14 }}>🔔 Notifications</span>
+          <div className="notif-head">
+            <span>Notifications</span>
             {unread > 0 && (
-              <span style={{
-                fontSize: 11, background: '#ef4444', color: '#fff',
-                borderRadius: 10, padding: '2px 8px', fontWeight: 700,
-              }}>
-                {unread} unread
-              </span>
+              <span className="notif-unread">{unread} unread</span>
             )}
           </div>
 
           {/* List */}
           {notifs.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🔕</div>
-              No notifications yet
+            <div className="notif-empty">
+              <BellIcon size={26} />
+              <span>No notifications yet</span>
             </div>
           ) : notifs.slice(0, 15).map(n => (
             <div
               key={n.id}
+              className={`notif-item${n.is_read ? '' : ' unread'}`}
               onClick={() => handleClick(n)}
-              style={{
-                padding: '12px 18px', cursor: 'pointer',
-                background: n.is_read ? '#fff' : '#f0f7ff',
-                borderBottom: '1px solid var(--border)',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-              onMouseLeave={e => e.currentTarget.style.background = n.is_read ? '#fff' : '#f0f7ff'}
             >
-              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 18, marginTop: 1 }}>
-                  {n.notification_type?.includes('kyc') ? '📋'
-                    : n.notification_type?.includes('reupload') ? '⚠️'
-                    : n.notification_type?.includes('shift') || n.notification_type?.includes('duty') ? '📅'
-                    : n.notification_type?.includes('interview') ? '🗓️'
-                    : '🔔'}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: n.is_read ? 600 : 700, fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>
-                    {n.title}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
-                    {n.message}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>
-                    {new Date(n.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                {!n.is_read && (
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3b82f6', flexShrink: 0, marginTop: 5 }} />
-                )}
+              <div className="notif-item-icon">
+                {notifIcon(n.notification_type)}
               </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="notif-item-title">{n.title}</div>
+                <div className="notif-item-msg">{n.message}</div>
+                <div className="notif-item-time">
+                  {new Date(n.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+              {!n.is_read && <span className="notif-pip" />}
             </div>
           ))}
         </div>
@@ -192,7 +172,8 @@ function NotificationBell() {
 export default function AppLayout({ title, children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const isAdmin  = user?.role === 'admin';
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   // Show Duty link when: logged in with full access (JWT) or just unlocked this session
   const shiftUnlocked = user?.access_level === 'full' || user?.shift_unlocked === true;
@@ -207,21 +188,42 @@ export default function AppLayout({ title, children }) {
     ? adminNav
     : nurseNav.filter(item => !item.shiftOnly || shiftUnlocked);
 
+  const roleLabel = isDeptHead
+    ? 'Dept Head'
+    : isHospitalAdmin
+    ? 'Hospital Admin'
+    : user?.role === 'admin'
+    ? 'Platform Admin'
+    : 'Nurse';
+
+  const roleDetail = isDeptHead
+    ? (user?.department || 'Dept Head')
+    : isHospitalAdmin
+    ? (user?.hospital_name || 'Hospital Admin')
+    : user?.role === 'admin'
+    ? 'Platform Admin'
+    : 'Nurse Account';
+
   const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
     <div className="app-layout">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar${mobileOpen ? ' open' : ''}`}>
         <div className="sidebar-logo">
-          <h2>🏥 Carenium</h2>
-          <span>Nurse Platform</span>
+          <img
+            src={`${import.meta.env.BASE_URL}carenium-logo.jpg`}
+            alt="Carenium logo"
+          />
+          <div>
+            <span className="logo-text">CARE<em>NIUM</em></span>
+            <span className="logo-sub">Nurse Platform</span>
+          </div>
         </div>
 
         <nav className="sidebar-nav">
           {nav.map(item => {
-            const icon  = (shiftUnlocked && item.shiftIcon)  ? item.shiftIcon  : item.icon;
-            const label = (shiftUnlocked && item.shiftLabel) ? item.shiftLabel : item.label;
+            const Icon = NAV_ICONS[item.icon] || DashboardIcon;
             return (
               <NavLink
                 key={item.to}
@@ -230,8 +232,13 @@ export default function AppLayout({ title, children }) {
                 className={({ isActive }) => isActive ? 'active' : ''}
                 style={item.locked ? { opacity: 0.65 } : {}}
                 title={item.locked ? 'Coming soon' : undefined}
+                onClick={() => setMobileOpen(false)}
               >
-                {icon} {label}{item.locked ? ' 🔒' : ''}
+                <Icon size={18} />
+                <span>{item.label}</span>
+                {item.locked && (
+                  <span className="lock-tag"><LockIcon size={13} /></span>
+                )}
               </NavLink>
             );
           })}
@@ -240,20 +247,10 @@ export default function AppLayout({ title, children }) {
         <div className="sidebar-footer">
           <div className="sidebar-user">
             <strong>{user?.full_name || user?.email}</strong>
-            <span style={{ textTransform: 'capitalize' }}>
-              {isDeptHead
-                ? `🩺 ${user?.department || 'Dept Head'}`
-                : isHospitalAdmin
-                ? `🏥 ${user?.hospital_name || 'Hospital Admin'}`
-                : user?.role === 'admin' ? 'Platform Admin' : 'Nurse Account'}
-            </span>
+            <span className="role-chip">{roleDetail}</span>
           </div>
-          <button
-            className="btn btn-outline btn-full"
-            onClick={handleLogout}
-            style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', fontSize: '13px' }}
-          >
-            Sign Out
+          <button className="btn btn-outline btn-full sidebar-signout" onClick={handleLogout}>
+            <LogOutIcon size={15} /> Sign Out
           </button>
         </div>
       </aside>
@@ -261,13 +258,16 @@ export default function AppLayout({ title, children }) {
       {/* Main content */}
       <div className="main-content">
         <header className="top-header">
-          <h1>{title}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <button className="header-menu-btn" onClick={() => setMobileOpen(o => !o)}>
+              <MenuIcon size={22} />
+            </button>
+            <h1>{title}</h1>
+          </div>
+          <div className="header-actions">
             {/* Notification bell — nurses only */}
             {!isAdmin && <NotificationBell />}
-            <span className="badge badge-approved" style={{ textTransform: 'capitalize' }}>
-              {isDeptHead ? 'Dept Head' : isHospitalAdmin ? 'Hospital Admin' : user?.role === 'admin' ? 'Platform Admin' : 'Nurse'}
-            </span>
+            <span className="role-chip">{roleLabel}</span>
           </div>
         </header>
         <main className="page-content">{children}</main>
