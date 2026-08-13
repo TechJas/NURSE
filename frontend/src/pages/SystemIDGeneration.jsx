@@ -7,6 +7,7 @@ import {
   resetCareIdLockout,
 } from '../api/endpoints';
 import toast from 'react-hot-toast';
+import { MailIcon, ChevronDownIcon, CheckIcon, XIcon, RefreshIcon, KeyIcon } from '../components/BrandIcons';
 
 export default function SystemIDGeneration() {
   const [candidates, setCandidates]     = useState([]);
@@ -75,33 +76,33 @@ export default function SystemIDGeneration() {
         {/* Bulk Email dropdown */}
         <div style={{ position: 'relative' }}>
           <button
+            className="btn btn-primary"
             onClick={() => setBulkOpen(!bulkOpen)}
-            style={{
-              background: '#7c3aed', color: '#fff', border: 'none',
-              padding: '9px 18px', borderRadius: 8, cursor: 'pointer',
-              fontSize: 14, fontWeight: 600,
-            }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
-            📧 Bulk Email ▾
+            <MailIcon size={16} /> Bulk Email
+            <ChevronDownIcon size={15} />
           </button>
           {bulkOpen && (
             <div style={{
               position: 'absolute', top: '110%', left: 0, zIndex: 100,
-              background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 220, overflow: 'hidden',
+              background: '#fff', border: '1px solid var(--border)', borderRadius: 12,
+              boxShadow: '0 4px 20px rgba(9,25,38,0.15)', minWidth: 240, overflow: 'hidden',
             }}>
-              <button onClick={() => handleBulk('passed')} style={dropBtn('#dcfce7', '#166534')}>
-                ✅ Send All Passed (CARE ID)
+              <button onClick={() => handleBulk('passed')} style={dropBtn('#eafaf1', '#166534', true)}>
+                <CheckIcon size={14} /> Send All Passed (CARE ID)
               </button>
-              <button onClick={() => handleBulk('failed')} style={dropBtn('#fee2e2', '#991b1b')}>
-                ❌ Send All Failed (Rejection)
+              <button onClick={() => handleBulk('failed')} style={dropBtn('#fdedec', '#991b1b', false)}>
+                <XIcon size={14} /> Send All Failed (Rejection)
               </button>
             </div>
           )}
         </div>
 
-        <div style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--text-muted)' }}>
-          {passed.length} passed · {failed.length} failed
+        <div style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><CheckIcon size={13} style={{ color: '#166534' }} /> <strong>{passed.length}</strong> passed</span>
+          <span style={{ color: 'var(--border)', fontWeight: 700 }}>·</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><XIcon size={13} style={{ color: '#dc2626' }} /> <strong>{failed.length}</strong> failed</span>
         </div>
       </div>
 
@@ -111,16 +112,19 @@ export default function SystemIDGeneration() {
       ) : candidates.length === 0 ? (
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <p>No CARE IDs generated yet.</p>
+            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--text-muted)', opacity: 0.35, marginBottom: 12 }}><KeyIcon size={44} /></div>
+            <p style={{ margin: 0 }}>No CARE IDs generated yet.</p>
           </div>
         </div>
       ) : (
         <div className="card">
+          <div className="card-header">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><KeyIcon size={18} /> CARE ID Candidates ({candidates.length})</h2>
+          </div>
           <div className="card-body" style={{ padding: 0, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
+                <tr style={{ background: 'var(--bg)' }}>
                   {['Name', 'Email', 'Contact', 'CARE ID', 'Status', 'Action'].map(h => (
                     <th key={h} style={th}>{h}</th>
                   ))}
@@ -141,50 +145,59 @@ export default function SystemIDGeneration() {
                       <td style={td}>
                         {c.care_id
                           ? <span style={{
-                              background: '#1e3a5f', color: '#fff',
+                              background: 'rgba(201,162,75,0.14)', color: '#9C7B2E',
+                              border: '1px solid rgba(201,162,75,0.4)',
                               padding: '3px 10px', borderRadius: 6,
-                              fontFamily: 'monospace', fontSize: 13, letterSpacing: 1,
+                              fontFamily: 'monospace', fontSize: 13, fontWeight: 700, letterSpacing: 1,
                             }}>{c.care_id}</span>
                           : <span style={{ color: 'var(--text-muted)' }}>—</span>
                         }
                       </td>
                       <td style={td}>
-                        <span style={{
-                          padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                          background: isPassed ? '#dcfce7' : '#fee2e2',
+                        <span className="badge" style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          background: isPassed ? '#eafaf1' : '#fdedec',
                           color:      isPassed ? '#166534' : '#991b1b',
                         }}>
-                          {isPassed ? '✅ PASSED' : '❌ FAILED'}
+                          {isPassed ? <CheckIcon size={11} /> : <XIcon size={11} />}
+                          {isPassed ? 'PASSED' : 'FAILED'}
                         </span>
                       </td>
-                      <td style={{ ...td, display: 'flex', gap: 6, alignItems: 'center' }}>
-                        {isPassed && (
-                          <>
-                            <button
-                              disabled={isSending}
-                              onClick={() => handleSend(c.id, c.email)}
-                              style={{
-                                background: c.care_id_email_sent ? '#6b7280' : '#1e3a5f',
-                                color: '#fff', border: 'none', borderRadius: 6,
-                                padding: '5px 12px', fontSize: 12, cursor: 'pointer',
-                                opacity: isSending ? 0.7 : 1,
-                              }}
-                            >
-                              {isSending ? '…' : c.care_id_email_sent ? '🔄 Resend' : '📧 Send'}
-                            </button>
-                            {c.is_locked_out && (
+                      <td style={{ ...td }}>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                          {isPassed && (
+                            <>
                               <button
-                                onClick={() => handleResetLockout(c.id, c.full_name)}
+                                disabled={isSending}
+                                onClick={() => handleSend(c.id, c.email)}
                                 style={{
-                                  background: '#dc2626', color: '#fff', border: 'none',
-                                  borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer',
+                                  background: c.care_id_email_sent ? 'var(--secondary)' : 'var(--brand-gold)',
+                                  color: c.care_id_email_sent ? 'var(--text-muted)' : 'var(--brand-navy)',
+                                  border: 'none', borderRadius: 6,
+                                  padding: '5px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                                  opacity: isSending ? 0.7 : 1,
                                 }}
                               >
-                                🔓 Reset Lockout
+                                {isSending ? 'Sending…' : c.care_id_email_sent
+                                  ? <><RefreshIcon size={12} /> Resend</>
+                                  : <><MailIcon size={12} /> Send</>}
                               </button>
-                            )}
-                          </>
-                        )}
+                              {c.is_locked_out && (
+                                <button
+                                  onClick={() => handleResetLockout(c.id, c.full_name)}
+                                  style={{
+                                    background: '#fdedec', color: '#dc2626', border: '1px solid rgba(220,38,38,0.4)',
+                                    borderRadius: 6, padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5,
+                                  }}
+                                >
+                                  <RefreshIcon size={12} /> Reset Lockout
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -213,7 +226,8 @@ const th = {
 };
 const td = { padding: '12px 14px', verticalAlign: 'middle' };
 const dropBtn = (bg, color) => ({
-  display: 'block', width: '100%', textAlign: 'left',
+  display: 'flex', width: '100%', alignItems: 'center', gap: 8,
   padding: '12px 16px', border: 'none', background: bg,
   color, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+  borderBottom: '1px solid rgba(0,0,0,0.04)',
 });

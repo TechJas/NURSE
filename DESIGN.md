@@ -339,39 +339,39 @@ as a modal (gold "Send OTP", 6 digit boxes, "Resend OTP", gold-check success).
 
 ### Platform Admin Portal
 
-**Admin Dashboard `/admin` — BUILD.** 6 clickable stat cards (Total Nurses, KYC
+**Admin Dashboard `/admin` — DONE.** 6 clickable stat cards (Total Nurses, KYC
 Pending, KYC Approved, Interview Sessions, Awaiting Result, Active Nurses) with
 brand tints + gold counts. Two-column KYC Pending (gold Review) / Awaiting
 Result (teal Results) cards. Hospital Admins summary + quick actions.
 
-**Nurse Registry `/admin/nurses` — BUILD.** Toolbar: status filter chips, CSV
+**Nurse Registry `/admin/nurses` — DONE.** Toolbar: status filter chips, CSV
 export, gold "Assign N to Interview". Registry table with teal checkboxes,
 status badges, gold Review KYC. KYC Review = right slide-in drawer (navy
 header, gold/green KYC banner, document rows, "X of Y docs viewed" progress,
 gold Approve / red Reject).
 
-**Interviews `/admin/interviews` — BUILD.** Gold "Create Interview Session";
+**Interviews `/admin/interviews` — DONE.** Gold "Create Interview Session";
 venue master card (gold upload CSV, green sample, slate format hint); sessions
 table with red "Expired" chips; awaiting-result table with gold "Record
 Result"; create + result modals (gold submit; green/red selection buttons).
 
-**System ID `/admin/system-id` — BUILD.** Gold "Bulk Email" dropdown, "N passed
+**System ID `/admin/system-id` — DONE.** Gold "Bulk Email" dropdown, "N passed
 · M failed" counts; candidates table with gold mono CARE-ID chips, gold
 Send/Resend (slate when sent), red "Reset Lockout"; slate empty state.
 
-**Hospital Admins `/admin/hospital-admins` — BUILD.** Counts header + gold
+**Hospital Admins `/admin/hospital-admins` — DONE.** Counts header + gold
 create; inline create grid; Active/Pending/Archived tabs with gold underline;
 table with navy hospital chips + red/green activate actions; deactivate modal
 (red confirm); created-account modal (dashed mono temp password, gold copy).
 
 ### Hospital Admin & Dept Head
 
-**Hospital Admin `/hospital-admin` — BUILD.** Teal accent; welcome banner
+**Hospital Admin `/hospital-admin` — DONE.** Teal accent; welcome banner
 (hospital name serif, gold line); stats (Active Nurses / Total Tasks / Tasks
 Today); department performance grid (pending count gold); tabbed card: Nurses /
 Task History / Dept Heads (gold create).
 
-**Dept Head `/dept` — BUILD.** Slate-navy accent; welcome banner (department
+**Dept Head `/dept` — DONE.** Slate-navy accent; welcome banner (department
 name serif, gold); stats (Nurses / Total Tasks / Pending / Acknowledged);
 tabbed card: My Nurses (gold "Assign Task") + Task History; Assign Task slide-in
 panel (navy header, nurse chip, full form, gold assign).

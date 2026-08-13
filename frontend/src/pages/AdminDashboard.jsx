@@ -5,6 +5,7 @@ import {
   listNurses, getInterviewSessions, listHospitalAdmins,
 } from '../api/endpoints';
 import toast from 'react-hot-toast';
+import { DashboardIcon, NurseIcon, IDIcon, InterviewIcon, TaskIcon, HospitalIcon, ClockIcon, CheckIcon, KeyIcon, PinIcon } from '../components/BrandIcons';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -42,111 +43,136 @@ export default function AdminDashboard() {
   const recentPending   = nurses.filter(n => !n.is_verified).slice(0, 5);
   const recentScheduled = nurses.filter(n => n.interview_status === 'SCHEDULED').slice(0, 5);
 
+  const cards = [
+    { icon: 'nurse',   label: 'Total Nurses',       value: total,       route: '/admin/nurses',      gold: false },
+    { icon: 'clock',   label: 'KYC Pending',        value: kycPending,  route: '/admin/nurses',      gold: true },
+    { icon: 'check',   label: 'KYC Approved',       value: kycApproved, route: '/admin/nurses',      gold: false },
+    { icon: 'id',      label: 'Interview Sessions', value: sessions.length, route: '/admin/interviews', gold: false },
+    { icon: 'task',    label: 'Awaiting Result',    value: scheduled,   route: '/admin/interviews',  gold: true },
+    { icon: 'nurse',   label: 'Active Nurses',      value: active,      route: '/admin/nurses',      gold: false },
+  ];
+
   return (
     <AppLayout title="Platform Admin Dashboard">
       {loading ? (
         <div style={{ textAlign:'center', padding:60, color:'var(--text-muted)' }}>Loading…</div>
       ) : (
         <>
-          {/* ── Stats Row ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px,1fr))', gap:16, marginBottom:28 }}>
-            {[
-              { label:'Total Nurses',       value:total,           icon:'👩‍⚕️', color:'#EBF5FB', route:'/admin/nurses' },
-              { label:'KYC Pending',        value:kycPending,      icon:'⏳',   color:'#FEF9E7', route:'/admin/nurses' },
-              { label:'KYC Approved',       value:kycApproved,     icon:'✅',   color:'#EAFAF1', route:'/admin/nurses' },
-              { label:'Interview Sessions', value:sessions.length, icon:'🗓️', color:'#F3E8FF', route:'/admin/interviews' },
-              { label:'Awaiting Result',    value:scheduled,       icon:'📋',   color:'#FFF7ED', route:'/admin/interviews' },
-              { label:'Active Nurses',      value:active,          icon:'⚡',   color:'#ECFDF5', route:'/admin/nurses' },
-            ].map(s => (
-              <div key={s.label} onClick={() => navigate(s.route)}
-                style={{ background:'#fff', borderRadius:12, padding:'20px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.08)', cursor:'pointer', display:'flex', alignItems:'center', gap:14, border:'1px solid #f0f0f0', transition:'box-shadow 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)'}>
-                <div style={{ width:44, height:44, borderRadius:10, background:s.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>{s.icon}</div>
-                <div>
-                  <div style={{ fontSize:26, fontWeight:700, lineHeight:1 }}>{s.value}</div>
-                  <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:4 }}>{s.label}</div>
+          {/* ── 6 Stat Cards ── */}
+          <div className="stats-grid" style={{ marginBottom: 24 }}>
+            {cards.map(s => {
+              const Icon = s.icon === 'nurse' ? NurseIcon : s.icon === 'clock' ? ClockIcon : s.icon === 'check' ? CheckIcon : s.icon === 'id' ? IDIcon : TaskIcon;
+              return (
+                <div key={s.label} className="stat-card" onClick={() => navigate(s.route)} style={{ cursor: 'pointer' }}>
+                  <div className="stat-info">
+                    <h3>{s.value}</h3>
+                    <p>{s.label}</p>
+                    <div className="stat-sub">{s.gold ? 'Needs attention' : 'View details'}</div>
+                  </div>
+                  <div className={`stat-icon${s.gold ? ' gold' : ''}`}><Icon size={22} /></div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* ── KYC + Interview Row ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:24 }}>
+          <div className="two-col-grid" style={{ marginBottom: 24 }}>
             <div className="card">
-              <div className="card-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <h2>⏳ KYC Pending ({kycPending})</h2>
-                <button className="btn btn-outline" style={{ fontSize:12, padding:'4px 12px' }} onClick={() => navigate('/admin/nurses')}>View All →</button>
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><ClockIcon size={18} /> KYC Pending ({kycPending})</h2>
+                <button className="btn btn-outline" style={{ fontSize: 12, padding: '4px 12px' }} onClick={() => navigate('/admin/nurses')}>View All</button>
               </div>
               <div className="card-body" style={{ padding: recentPending.length === 0 ? 24 : 0 }}>
                 {recentPending.length === 0 ? (
-                  <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>🎉 No pending KYC reviews!</p>
+                  <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                    <CheckIcon size={16} style={{ color: '#1E8449' }} /> No pending KYC reviews!
+                  </p>
                 ) : (
-                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                    <thead><tr style={{ background:'#f9fafb' }}>{['Name','Specialization','Action'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-                    <tbody>
-                      {recentPending.map(n => (
-                        <tr key={n.id} style={{ borderBottom:'1px solid var(--border)' }}>
-                          <td style={td}><strong style={{ fontSize:13 }}>{n.full_name}</strong><div style={{ fontSize:11, color:'var(--text-muted)' }}>{n.email}</div></td>
-                          <td style={td}><span style={{ fontSize:12 }}>{n.specialization || '—'}</span></td>
-                          <td style={td}><button className="btn btn-primary" style={{ padding:'4px 10px', fontSize:11, background:'#f59e0b', borderColor:'#f59e0b' }} onClick={() => navigate('/admin/nurses')}>📋 Review</button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="table-wrapper">
+                    <table>
+                      <thead><tr><th>Name</th><th>Specialization</th><th>Action</th></tr></thead>
+                      <tbody>
+                        {recentPending.map(n => (
+                          <tr key={n.id}>
+                            <td><strong style={{ fontSize: 13 }}>{n.full_name}</strong><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{n.email}</div></td>
+                            <td><span style={{ fontSize: 12 }}>{n.specialization || '—'}</span></td>
+                            <td>
+                              <button className="btn btn-primary" style={{ padding:'5px 12px', fontSize:11 }}
+                                onClick={() => navigate('/admin/nurses')}>Review</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             </div>
+
             <div className="card">
-              <div className="card-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <h2>📝 Awaiting Result ({scheduled})</h2>
-                <button className="btn btn-outline" style={{ fontSize:12, padding:'4px 12px' }} onClick={() => navigate('/admin/interviews')}>View All →</button>
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><TaskIcon size={18} /> Awaiting Result ({scheduled})</h2>
+                <button className="btn btn-outline" style={{ fontSize: 12, padding: '4px 12px' }} onClick={() => navigate('/admin/interviews')}>View All</button>
               </div>
               <div className="card-body" style={{ padding: recentScheduled.length === 0 ? 24 : 0 }}>
                 {recentScheduled.length === 0 ? (
                   <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>No nurses currently scheduled.</p>
                 ) : (
-                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                    <thead><tr style={{ background:'#f9fafb' }}>{['Name','Email','Action'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-                    <tbody>
-                      {recentScheduled.map(n => (
-                        <tr key={n.id} style={{ borderBottom:'1px solid var(--border)' }}>
-                          <td style={td}><strong style={{ fontSize:13 }}>{n.full_name}</strong></td>
-                          <td style={{ ...td, fontSize:12, color:'var(--text-muted)' }}>{n.email}</td>
-                          <td style={td}><button className="btn btn-primary" style={{ padding:'4px 10px', fontSize:11 }} onClick={() => navigate('/admin/interviews')}>📊 Results</button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="table-wrapper">
+                    <table>
+                      <thead><tr><th>Name</th><th>Email</th><th>Action</th></tr></thead>
+                      <tbody>
+                        {recentScheduled.map(n => (
+                          <tr key={n.id}>
+                            <td><strong style={{ fontSize: 13 }}>{n.full_name}</strong></td>
+                            <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{n.email}</td>
+                            <td>
+                              <button className="btn btn-primary" style={{ padding:'5px 12px', fontSize:11 }}
+                                onClick={() => navigate('/admin/interviews')}>Results</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* ── Hospital Admin Summary Card ── */}
-          <div className="card" style={{ marginBottom:24 }}>
-            <div className="card-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <h2>🏥 Hospital Admins</h2>
-                <p style={{ fontSize:12, color:'var(--text-muted)', margin:'2px 0 0' }}>
-                  {haCounts.active} active · {haCounts.pending} pending · {haCounts.archived} archived
-                </p>
+          {/* ── Hospital Admin Summary ── */}
+          <div className="card" style={{ marginBottom: 24 }}>
+            <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="stat-icon" style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(11,94,107,0.08)', color: '#0B5E6B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <HospitalIcon size={22} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 15.5, fontWeight: 700 }}>Hospital Admins</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                    {haCounts.active} active · {haCounts.pending} pending · {haCounts.archived} archived
+                  </div>
+                </div>
               </div>
-              <button className="btn btn-primary" style={{ background:'#7c3aed' }}
-                onClick={() => navigate('/admin/hospital-admins')}>
-                Manage →
-              </button>
+              <button className="btn btn-primary" onClick={() => navigate('/admin/hospital-admins')}>Manage</button>
             </div>
           </div>
 
           {/* ── Quick Actions ── */}
           <div className="card">
-            <div className="card-header"><h2>⚡ Quick Actions</h2></div>
-            <div className="card-body" style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <button className="btn btn-primary" onClick={() => navigate('/admin/nurses')}>👩‍⚕️ Manage Nurse Registry</button>
-              <button className="btn btn-primary" style={{ background:'#7c3aed' }} onClick={() => navigate('/admin/interviews')}>🗓️ Manage Interviews</button>
-              <button className="btn btn-primary" style={{ background:'#0369a1' }} onClick={() => navigate('/admin/system-id')}>🆔 System ID Generation</button>
-              <button className="btn btn-primary" style={{ background:'#0d9488' }} onClick={() => navigate('/admin/hospital-admins')}>🏥 Hospital Admins</button>
+            <div className="card-header"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><DashboardIcon size={18} /> Quick Actions</h2></div>
+            <div className="card-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Manage Nurse Registry', route: '/admin/nurses',            icon: <NurseIcon size={15} /> },
+                { label: 'Manage Interviews',     route: '/admin/interviews',        icon: <InterviewIcon size={15} /> },
+                { label: 'System ID Generation',  route: '/admin/system-id',         icon: <KeyIcon size={15} /> },
+                { label: 'Hospital Admins',       route: '/admin/hospital-admins',   icon: <PinIcon size={15} /> },
+              ].map(a => (
+                <button key={a.label} className="btn btn-primary" onClick={() => navigate(a.route)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {a.icon} {a.label}
+                </button>
+              ))}
             </div>
           </div>
         </>
@@ -154,6 +180,3 @@ export default function AdminDashboard() {
     </AppLayout>
   );
 }
-
-const th = { padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.04em' };
-const td = { padding:'12px 14px', verticalAlign:'middle' };
