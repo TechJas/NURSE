@@ -255,7 +255,7 @@ export default function DocumentsPage() {
                           <input
                             type="date"
                             value={expiryDate}
-                            min={new Date().toISOString().split('T')[0]}
+                            min={(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})()}
                             onChange={e => setExpiryDate(e.target.value)}
                             style={{ display: 'block', width: '100%' }}
                           />

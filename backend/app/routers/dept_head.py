@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import date as _date
+from datetime import date as _date, datetime as _datetime
 import uuid
 
 from app.database.session import SessionLocal
@@ -14,6 +14,32 @@ from app.utils.notification_helper import create_notification
 router = APIRouter(prefix="/dept", tags=["Dept Head"])
 
 SPECIALIZATIONS = ["Emergency", "Pediatrics", "ICU", "General", "Home Care"]
+
+
+def _time_str_to_minutes(t):
+    """Parse '8:00 AM' / '12:30 PM' style times into minutes since midnight. None if unparseable."""
+    if not t:
+        return None
+    t = t.strip().upper()
+    parts = t.split()
+    if len(parts) != 2:
+        return None
+    hhmm, period = parts
+    if period not in ("AM", "PM"):
+        return None
+    try:
+        hour_str, min_str = hhmm.split(":")
+        hour = int(hour_str)
+        minute = int(min_str)
+        if hour < 1 or hour > 12 or minute < 0 or minute > 59:
+            return None
+        if period == "AM" and hour == 12:
+            hour = 0
+        elif period == "PM" and hour != 12:
+            hour += 12
+        return hour * 60 + minute
+    except Exception:
+        return None
 
 def get_db():
     db = SessionLocal()
@@ -130,6 +156,17 @@ def assign_dept_task(
         raise HTTPException(400, "Invalid shift_date. Use YYYY-MM-DD.")
     if shift_date < _date.today():
         raise HTTPException(400, "Cannot assign a task on a past date.")
+
+    # Block past time on today's tasks
+    if shift_date == _date.today():
+        shift_time_str = data.get("shift_time", "")
+        tmin = _time_str_to_minutes(shift_time_str)
+        if tmin is None:
+            raise HTTPException(400, f"Invalid time format: '{shift_time_str}'. Use format like '8:00 AM'.")
+        now = _datetime.now()
+        now_min = now.hour * 60 + now.minute
+        if tmin <= now_min:
+            raise HTTPException(400, f"Cannot assign a task for {shift_time_str} — this time has already passed today.")
 
     task = ShiftAssignment(
         nurse_id                = nurse_uuid,

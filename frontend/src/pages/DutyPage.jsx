@@ -68,7 +68,7 @@ export default function DutyPage() {
     } catch { toast.error('Export failed'); }
   };
 
-  const today    = new Date().toISOString().split('T')[0];
+  const _d=new Date(); const today = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');
   const filtered = filter === 'All'      ? shifts
                  : filter === 'Today'    ? shifts.filter(s => s.shift_date === today)
                  : filter === 'Upcoming' ? shifts.filter(s => s.shift_date > today)

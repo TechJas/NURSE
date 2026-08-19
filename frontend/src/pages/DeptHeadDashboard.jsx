@@ -7,22 +7,51 @@ import { NurseIcon, TaskIcon, ClockIcon, CheckIcon, PlusIcon, XIcon, SearchIcon,
 
 const TYPES  = ['Patient Care','Emergency Response','Medication Administration','Patient Monitoring','Ward Rounds','Triage'];
 const PRIOS  = [{v:'emergency',l:'Emergency'},{v:'urgent',l:'Urgent'},{v:'routine',l:'Routine'}];
+const HOURS  = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+const MINS   = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','49','50','51','52','53','54','55','56','57','58','59'];
+const PERIODS = ['AM','PM'];
+const toMinutes = (h, m, p) => { let hr = parseInt(h); const mi = parseInt(m); if (p === 'AM' && hr === 12) hr = 0; else if (p === 'PM' && hr !== 12) hr += 12; return hr * 60 + mi; };
+const minutesToHM = (mins) => { let h24 = Math.floor(mins / 60) % 24; const m = mins % 60; const p = h24 >= 12 ? 'PM' : 'AM'; let h12 = h24 % 12; if (h12 === 0) h12 = 12; return { h: String(h12), m: String(m).padStart(2, '0'), p }; };
 const PBADGE = { emergency:{bg:'#fdedec',c:'#b32727'}, urgent:{bg:'rgba(201,162,75,0.14)',c:'#9C7B2E'}, routine:{bg:'#eafaf1',c:'#166534'} };
 const SBADGE = { assigned:{bg:'#ebf5fb',c:'#1a5276',l:'Assigned'}, acknowledged:{bg:'#eafaf1',c:'#166534',l:'Acknowledged'}, completed:{bg:'#f0f3f4',c:'#566573',l:'Completed'} };
-const today  = new Date().toISOString().split('T')[0];
+const _now = new Date();
+const today  = _now.getFullYear() + '-' + String(_now.getMonth()+1).padStart(2,'0') + '-' + String(_now.getDate()).padStart(2,'0');
 
 // ─── Slide-in Assign Panel ──────────────────────────────────────────────────
 function AssignPanel({ nurse, dept, onClose, onDone }) {
-  const [f, setF] = useState({ task_title:'', task_type:TYPES[0], priority:'routine', ward:'', floor:'', shift_date:today, shift_time:'08:00', task_notes:'' });
+  const [f, setF] = useState({ task_title:'', task_type:TYPES[0], priority:'routine', ward:'', floor:'', shift_date:today, shift_hour:'8', shift_minute:'00', shift_period:'AM', task_notes:'' });
   const [busy, setBusy] = useState(false);
   const set = (k,v) => setF(p=>({...p,[k]:v}));
+
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const isToday = f.shift_date === today;
+
+  const hourDisabled   = (h)    => isToday && toMinutes(h, f.shift_minute, f.shift_period) <= nowMin;
+  const minuteDisabled = (m)    => isToday && toMinutes(f.shift_hour, m, f.shift_period) <= nowMin;
+  const periodDisabled = (p)    => isToday && toMinutes(f.shift_hour, f.shift_minute, p) <= nowMin;
+
+  const handleDateChange = (d) => {
+    set('shift_date', d);
+    if (d === today) {
+      const cur = toMinutes(f.shift_hour, f.shift_minute, f.shift_period);
+      if (cur <= nowMin) {
+        let nxt = nowMin + 1;
+        const h = Math.floor(nxt / 60) % 12 || 12;
+        const m = String(nxt % 60).padStart(2, '0');
+        const p = nxt < 720 ? 'AM' : 'PM';
+        setF(pv => ({ ...pv, shift_date: d, shift_hour: String(h), shift_minute: m, shift_period: p }));
+      }
+    }
+  };
 
   const submit = async () => {
     if (!f.task_title.trim()) return toast.error('Task title required');
     if (!f.ward.trim())       return toast.error('Ward required');
     setBusy(true);
     try {
-      await assignDeptTask({ nurse_id: nurse.id, ...f, specialization_required: dept });
+      const shift_time = f.shift_hour + ':' + f.shift_minute + ' ' + f.shift_period;
+      await assignDeptTask({ nurse_id: nurse.id, ...f, shift_time, specialization_required: dept });
       toast.success(`Task assigned to ${nurse.full_name}!`);
       onDone();
     } catch(e) { toast.error(e.response?.data?.detail || 'Assignment failed'); }
@@ -78,10 +107,20 @@ function AssignPanel({ nurse, dept, onClose, onDone }) {
               </select>
             </div>
             <div><label style={lbl}>Date *</label>
-              <input style={inp} type="date" min={today} value={f.shift_date} onChange={e=>set('shift_date',e.target.value)} />
+              <input style={inp} type="date" min={today} value={f.shift_date} onChange={e=>handleDateChange(e.target.value)} />
             </div>
-            <div><label style={lbl}>Time</label>
-              <input style={inp} type="time" value={f.shift_time} onChange={e=>set('shift_time',e.target.value)} />
+            <div><label style={lbl}>Time *</label>
+              <div style={{ display:'flex',gap:6 }}>
+                <select style={{ ...inp,flex:1 }} value={f.shift_hour} onChange={e=>set('shift_hour',e.target.value)}>
+                  {HOURS.map(h=><option key={h} value={h} disabled={hourDisabled(h)} style={hourDisabled(h)?{color:'#bbb'}:{}}>{h}</option>)}
+                </select>
+                <select style={{ ...inp,flex:1 }} value={f.shift_minute} onChange={e=>set('shift_minute',e.target.value)}>
+                  {MINS.map(m=><option key={m} value={m} disabled={minuteDisabled(m)} style={minuteDisabled(m)?{color:'#bbb'}:{}}>{m}</option>)}
+                </select>
+                <select style={{ ...inp,flex:1 }} value={f.shift_period} onChange={e=>set('shift_period',e.target.value)}>
+                  {PERIODS.map(p=><option key={p} value={p} disabled={periodDisabled(p)} style={periodDisabled(p)?{color:'#bbb'}:{}}>{p}</option>)}
+                </select>
+              </div>
             </div>
           </div>
           <div style={{ marginBottom:20 }}>

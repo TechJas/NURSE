@@ -77,6 +77,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         token_payload["access_level"]     = "full" if is_full else "restricted"
         token_payload["shift_unlocked"]   = getattr(user, "shift_unlocked", False) or False
         token_payload["care_id_verified"] = is_full
+        token_payload["full_name"]        = user.full_name or user.email
 
     elif role == "admin":
         admin_role    = getattr(user, "admin_role", "platform_admin") or "platform_admin"

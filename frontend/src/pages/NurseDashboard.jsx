@@ -283,7 +283,7 @@ function Stage3View({ profile, shiftData }) {
   const [kycExpanded, setKycExpanded] = useState(false);
   const card         = shiftData?.nurse_id_card;
   const shifts       = shiftData?.shifts || [];
-  const today        = new Date().toISOString().split('T')[0];
+  const _d=new Date(); const today        = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');
   const todayShift   = shifts.find(s => s.shift_date === today);
   const upcoming     = shifts.filter(s => s.shift_date >= today).slice(0, 3);
 

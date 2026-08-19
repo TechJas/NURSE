@@ -13,7 +13,7 @@ const nurseNav = [
   { to: '/dashboard',     label: 'Dashboard',        icon: 'dashboard',  locked: false },
   { to: '/documents',     label: 'My Documents',      icon: 'documents',  locked: false },
   { to: '/requests',      label: 'Delivery Requests', icon: 'task',       locked: true  },
-  { to: '/working-shift', label: 'Working Shift',     icon: 'key',        locked: false },
+  { to: '/working-shift', label: 'Working Shift',     icon: 'key',        locked: false, preUnlock: true },
   { to: '/duty',          label: 'My Duty',           icon: 'calendar',   shiftOnly: true },
   { to: '/profile',       label: 'Profile Settings',  icon: 'settings',   locked: false },
 ];
@@ -186,7 +186,7 @@ export default function AppLayout({ title, children }) {
     ? hospitalAdminNav
     : isAdmin
     ? adminNav
-    : nurseNav.filter(item => !item.shiftOnly || shiftUnlocked);
+    : nurseNav.filter(item => (!item.shiftOnly || shiftUnlocked) && !(item.preUnlock && shiftUnlocked));
 
   const roleLabel = isDeptHead
     ? 'Dept Head'

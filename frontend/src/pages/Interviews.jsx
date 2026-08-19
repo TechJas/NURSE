@@ -38,7 +38,33 @@ export default function Interviews() {
 
   useEffect(() => { fetchAll(); }, []);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toLocaleDateString('en-CA');
+
+  const timeToMinutes = (t) => {
+    if (!t) return null;
+    const m = t.trim().toUpperCase().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/);
+    if (!m) return null;
+    let h = parseInt(m[1], 10) % 12;
+    if (m[3] === 'PM') h += 12;
+    return h * 60 + parseInt(m[2], 10);
+  };
+
+  const sessionStatus = (s) => {
+    if (s.interview_date > todayStr) return 'UPCOMING';
+    if (s.interview_date < todayStr) return 'EXPIRED';
+    const tmin = timeToMinutes(s.interview_time);
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    if (tmin === null || tmin > nowMin) return 'TODAY';
+    return 'EXPIRED';
+  };
+
+  const statusStyle = (status) => {
+    if (status === 'TODAY') {
+      return { background: 'rgba(201,162,75,0.12)', color: '#8a6d1f', border: '1px solid rgba(201,162,75,0.45)', display: 'inline-flex', alignItems: 'center', gap: 4 };
+    }
+    if (status === 'UPCOMING') return { display: 'inline-flex', alignItems: 'center', gap: 4 };
+    return { background: 'rgba(220,38,38,0.1)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.35)', display: 'inline-flex', alignItems: 'center', gap: 4 };
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -174,25 +200,25 @@ Apollo Hospital,Room 101,2nd Floor,Block A,Chennai</pre>
                         <th>Address</th>
                         <th>Date</th>
                         <th>Time</th>
+                        <th>Status</th>
                         <th>Instructions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {sessions.map(s => {
-                        const isPast = s.interview_date < todayStr;
+                        const status = sessionStatus(s);
+                        const expired = status === 'EXPIRED';
                         return (
-                          <tr key={s.id} style={{ opacity: isPast ? 0.7 : 1 }}>
+                          <tr key={s.id} style={{ opacity: expired ? 0.7 : 1 }}>
                             <td><strong>{s.venue_name}</strong></td>
                             <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{s.venue_address || '—'}</td>
-                            <td>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CalendarIcon size={13} /> {s.interview_date}</span>
-                              {isPast && (
-                                <span className="badge" style={{ marginLeft: 8, background: 'rgba(220,38,38,0.1)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.35)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                  <AlertIcon size={11} /> Expired
-                                </span>
-                              )}
-                            </td>
+                            <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CalendarIcon size={13} /> {s.interview_date}</span></td>
                             <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ClockIcon size={13} /> {s.interview_time}</span></td>
+                            <td>
+                              <span className={`badge ${status === 'UPCOMING' ? 'badge-active' : ''}`} style={statusStyle(status)}>
+                                {status === 'EXPIRED' && <AlertIcon size={11} />} {status}
+                              </span>
+                            </td>
                             <td style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 200 }}>{s.instructions || '—'}</td>
                           </tr>
                         );

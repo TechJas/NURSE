@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
 import { useAuth } from '../context/AuthContext';
-import { sendOtp, changePassword } from '../api/endpoints';
+import { sendOtp, changePassword, getNurseProfile } from '../api/endpoints';
 import toast from 'react-hot-toast';
 import { UserIcon, ShieldIcon, EyeIcon, EyeOffIcon, CheckIcon, MailIcon, XIcon, KeyIcon } from '../components/BrandIcons';
 
@@ -16,6 +16,7 @@ const roleLabel = user => {
 export default function ProfileSettings() {
   const { user, mustResetPassword } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     if (mustResetPassword) {
@@ -23,8 +24,16 @@ export default function ProfileSettings() {
     }
   }, [mustResetPassword, navigate]);
 
+  useEffect(() => {
+    if (user?.role === 'nurse') {
+      getNurseProfile()
+        .then(r => setProfile(r.data))
+        .catch(() => {});
+    }
+  }, [user?.role]);
+
   const infoRows = [
-    { label: 'Name', value: user?.full_name || '—' },
+    { label: 'Name', value: profile?.full_name || user?.full_name || '—' },
     { label: 'Email', value: user?.email || '—' },
     { label: 'Hospital', value: user?.hospital_name || null },
     { label: 'Department', value: user?.department || null },

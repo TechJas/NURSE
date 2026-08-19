@@ -31,7 +31,7 @@ export const getDocumentSignedUrl = (nurseId, docId) => api.get(`/admin/nurses/$
 
 // ─── Admin: Interview Sessions ──────────────
 export const createInterviewSession  = (data)           => api.post('/admin/interviews/sessions', data);
-export const getInterviewSessions    = ()               => api.get('/admin/interviews/sessions');
+export const getInterviewSessions    = (assignable = false) => api.get('/admin/interviews/sessions', { params: { assignable } });
 export const assignNursesToInterview = (data)           => api.post('/admin/interviews/assign', data);
 export const submitInterviewResult   = (nurseId, data)  => api.post(`/admin/interviews/${nurseId}/result`, data);
 

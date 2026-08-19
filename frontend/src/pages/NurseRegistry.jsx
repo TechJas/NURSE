@@ -78,6 +78,7 @@ export default function NurseRegistry() {
   const [sessions,        setSessions]        = useState([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignSessionId, setAssignSessionId] = useState('');
+  const [assignBusy,      setAssignBusy]      = useState(false);
 
   const fetchNurses = async () => {
     try { const r = await listNurses(); setNurses(r.data); }
@@ -201,19 +202,39 @@ export default function NurseRegistry() {
     } catch { toast.error('Export failed.'); }
   };
 
+  const parseSessionDT = (date, time) => {
+    if (!time) return new Date(`${date}T00:00:00`);
+    const m = time.trim().toUpperCase().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+    if (!m) return new Date(`${date}T00:00:00`);
+    let h = parseInt(m[1], 10) % 12;
+    if (m[3] === 'PM') h += 12;
+    return new Date(`${date}T${String(h).padStart(2, '0')}:${m[2]}:00`);
+  };
+
   const openAssign = async () => {
     if (selected.size === 0) return toast.error('Select nurses first.');
-    try { const r = await getInterviewSessions(); setSessions(r.data); setShowAssignModal(true); }
+    try {
+      const r = await getInterviewSessions(true);
+      const now = new Date();
+      const future = r.data.filter(s => parseSessionDT(s.interview_date, s.interview_time) > now);
+      setSessions(future);
+      setShowAssignModal(true);
+    }
     catch { toast.error('Failed to load sessions.'); }
   };
 
   const handleAssign = async () => {
     if (!assignSessionId) return toast.error('Select a session.');
+    if (assignBusy) return;
+    setAssignBusy(true);
     try {
-      await assignNursesToInterview({ session_id: assignSessionId, nurse_ids: [...selected] });
-      toast.success(`${selected.size} nurses assigned!`);
+      const res = await assignNursesToInterview({ session_id: assignSessionId, nurse_ids: [...selected] });
+      const count = res.data?.assigned?.length ?? selected.size;
+      if (count === 0) return toast.error('No nurses could be assigned. Check the nurse selection.');
+      toast.success(`${count} nurse${count !== 1 ? 's' : ''} assigned successfully!`);
       setSelected(new Set()); setShowAssignModal(false); fetchNurses();
-    } catch (e) { toast.error(e.response?.data?.detail || 'Failed'); }
+    } catch (e) { toast.error(e.response?.data?.detail || 'Assignment failed. Please try again.'); }
+    finally { setAssignBusy(false); }
   };
 
   const toggleSelect = (id) => setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
@@ -561,18 +582,24 @@ export default function NurseRegistry() {
         <div style={overlay} onClick={() => setShowAssignModal(false)}>
           <div style={{ ...modal, maxWidth: 420 }} onClick={e => e.stopPropagation()}>
             <h2 style={{ marginTop: 0, fontFamily: 'var(--font-display)' }}>Assign {selected.size} Nurses to Interview</h2>
-            <div className="form-group">
-              <label>Select Interview Session</label>
-              <select value={assignSessionId} onChange={e => setAssignSessionId(e.target.value)}
-                style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)' }}>
-                <option value="">Choose session…</option>
-                {sessions.map(s => <option key={s.id} value={s.id}>{s.venue_name} — {s.interview_date} {s.interview_time}</option>)}
-              </select>
-            </div>
-            {sessions.length === 0 && (
-              <p style={{ fontSize: 13, color: '#dc2626' }}>No sessions available. Go to Interviews and create one first.</p>
+            {sessions.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#dc2626', margin: '8px 0 16px' }}>No upcoming sessions available. All sessions are either expired or full. Create a new one on the Interviews page.</p>
+            ) : (
+              <div className="form-group">
+                <label>Select Interview Session</label>
+                <select value={assignSessionId} onChange={e => setAssignSessionId(e.target.value)}
+                  style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid var(--border)', color: 'var(--text)', fontSize: 13, background: '#fff' }}>
+                  <option value="" style={{ color: 'var(--text-muted)' }}>Choose session…</option>
+                  {sessions.map(s => <option key={s.id} value={s.id} style={{ color: 'var(--text)' }}>
+                    {s.venue_name} — {s.interview_date} {s.interview_time} ({s.available_seats} seat{s.available_seats !== 1 ? 's' : ''} left)
+                  </option>)}
+                </select>
+              </div>
             )}
-            <button className="btn btn-primary btn-full" onClick={handleAssign}>Assign to Interview</button>
+            <button className="btn btn-primary btn-full" onClick={handleAssign}
+              disabled={assignBusy || sessions.length === 0 || !assignSessionId}>
+              {assignBusy ? <><span className="spinner" /> Assigning…</> : 'Assign to Interview'}
+            </button>
           </div>
         </div>
       )}

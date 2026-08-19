@@ -317,12 +317,21 @@ def schedule_interview(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                           detail="Cannot schedule interview. Nurse KYC must be verified first.")
 
-    # Block past dates
-    from datetime import date as _date
+    # Block double-scheduling — same guard as the batch assignment path
+    if nurse.interview_status in ("SCHEDULED", "SELECTED", "PASSED"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot schedule interview: {nurse.full_name} is already {nurse.interview_status.lower().replace('_', ' ')}."
+        )
+
+    # Block past dates / times (full datetime, not just the date)
     interview_dt = interview_data.interview_date
-    interview_date_only = interview_dt.date() if hasattr(interview_dt, 'date') else interview_dt
-    if interview_date_only < _date.today():
-        raise HTTPException(status_code=400, detail="Cannot schedule an interview on a past date.")
+    if isinstance(interview_dt, datetime):
+        if interview_dt <= datetime.now():
+            raise HTTPException(status_code=400, detail="Cannot schedule an interview on a past date or time.")
+    else:
+        if interview_dt.date() < date.today():
+            raise HTTPException(status_code=400, detail="Cannot schedule an interview on a past date.")
 
     # Create interview
     interview = Interview(**interview_data.dict())
@@ -620,6 +629,29 @@ def create_interview_session(
         except Exception:
             venue_hospital_id = None
 
+    # Block past dates — cannot create a session for a date that has already passed
+    try:
+        session_date = date.fromisoformat(str(data["interview_date"]))
+    except Exception:
+        session_date = data["interview_date"]
+    if session_date < date.today():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create a session on a past date ({session_date}). Please select today or a future date."
+        )
+
+    # Duplicate guard — same venue + date + time must not be created twice
+    dup = db.query(InterviewSession).filter(
+        InterviewSession.venue_name == data["venue_name"],
+        InterviewSession.interview_date == session_date,
+        InterviewSession.interview_time == data["interview_time"],
+    ).first()
+    if dup:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A session already exists for {data['venue_name']} on {session_date} at {data['interview_time']}."
+        )
+
     session = InterviewSession(
         venue_name=data["venue_name"],
         venue_address=data.get("venue_address"),
@@ -646,23 +678,101 @@ def create_interview_session(
     }
 
 
+SESSION_CAPACITY = 10  # default seats per interview session
+
+
+def _time_to_minutes(t):
+    """Parse '10:00 AM' / '14:30' style times into minutes since midnight. None if unparseable."""
+    if not t:
+        return None
+    t = t.strip().upper()
+    pieces = t.split()
+    try:
+        hhmm = pieces[0]
+        period = pieces[1] if len(pieces) > 1 and pieces[1] in ("AM", "PM") else ""
+        hour_raw, minute_raw = hhmm.split(":")
+        hour = int(hour_raw) % 12
+        if period == "PM":
+            hour += 12
+        return hour * 60 + int(minute_raw)
+    except Exception:
+        return None
+
+
+def _time_12h_to_minutes(t):
+    """Parse '8:00 AM' / '12:30 PM' style 12-hour times into minutes since midnight. None if unparseable."""
+    if not t:
+        return None
+    t = t.strip().upper()
+    parts = t.split()
+    if len(parts) != 2:
+        return None
+    hhmm, period = parts
+    if period not in ("AM", "PM"):
+        return None
+    try:
+        hour_str, min_str = hhmm.split(":")
+        hour = int(hour_str)
+        minute = int(min_str)
+        if hour < 1 or hour > 12 or minute < 0 or minute > 59:
+            return None
+        if period == "AM" and hour == 12:
+            hour = 0
+        elif period == "PM" and hour != 12:
+            hour += 12
+        return hour * 60 + minute
+    except Exception:
+        return None
+
+
 @router.get("/interviews/sessions")
 def list_interview_sessions(
+    assignable: bool = False,
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_admin_user)
 ):
-    sessions = db.query(InterviewSession).order_by(InterviewSession.created_at.desc()).all()
-    return [
-        {
+    """List interview sessions. With assignable=true, only sessions still in the future (date + time) with free seats."""
+    query = db.query(InterviewSession)
+    now = datetime.now()
+    if assignable:
+        query = query.filter(InterviewSession.interview_date >= date.today())
+    sessions = query.order_by(InterviewSession.interview_date.asc(), InterviewSession.interview_time.asc()).all()
+
+    # Booked nurses per (date, venue) from SCHEDULED interviews
+    # (approximation until Interview carries a session FK)
+    booked_counts = {}
+    rows = db.query(
+        Interview.interview_date, Interview.location, func.count(func.distinct(Interview.nurse_id))
+    ).filter(Interview.status == "SCHEDULED").group_by(
+        Interview.interview_date, Interview.location
+    ).all()
+    for d, loc, cnt in rows:
+        booked_counts[(str(d.date() if hasattr(d, 'date') else d), loc)] = cnt
+
+    result = []
+    for s in sessions:
+        booked    = booked_counts.get((str(s.interview_date), s.venue_name), 0)
+        available = max(0, SESSION_CAPACITY - booked)
+        if assignable:
+            if s.interview_date < date.today():
+                continue
+            if s.interview_date == date.today():
+                tmin = _time_to_minutes(s.interview_time)
+                if tmin is None or tmin <= now.hour * 60 + now.minute:
+                    continue  # today's session has already started (or is starting now)
+            if available <= 0:
+                continue
+        result.append({
             "id": str(s.id),
             "venue_name": s.venue_name,
             "venue_address": s.venue_address,
             "interview_date": str(s.interview_date),
             "interview_time": s.interview_time,
             "instructions": s.instructions,
-        }
-        for s in sessions
-    ]
+            "available_seats": available,
+            "total_seats": SESSION_CAPACITY,
+        })
+    return result
 
 
 @router.post("/interviews/assign")
@@ -672,19 +782,54 @@ def batch_assign_nurses(
     db: Session = Depends(get_db),
     current_admin: dict = Depends(get_current_admin_user)
 ):
-    """Assign multiple nurses to an interview session."""
-    session_id = data["session_id"]
-    nurse_ids = data["nurse_ids"]
+    """Assign multiple nurses to an interview session (upcoming sessions only)."""
+    session_id = data.get("session_id")
+    nurse_ids  = data.get("nurse_ids") or []
+
+    if not session_id or not nurse_ids:
+        raise HTTPException(status_code=400, detail="session_id and nurse_ids are required")
 
     session = db.query(InterviewSession).filter(InterviewSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Interview session not found")
 
-    assigned = []
+    # Block past sessions — no assigning to expired interviews (date, or time on the same day)
+    now = datetime.now()
+    if session.interview_date < now.date():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot assign to this session: it was scheduled on {session.interview_date} (past date)."
+        )
+    if session.interview_date == now.date():
+        tmin = _time_to_minutes(session.interview_time)
+        if tmin is None or tmin <= now.hour * 60 + now.minute:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot assign to this session: its time ({session.interview_time}) has already passed today."
+            )
+
+    # Validate every nurse BEFORE writing anything — no silent skips
+    problems = []
+    nurses   = []
     for nid in nurse_ids:
         nurse = db.query(Nurse).filter(Nurse.id == nid).first()
-        if not nurse or not nurse.is_verified:
+        if not nurse:
+            problems.append(f"nurse {nid} not found")
             continue
+        if not nurse.is_verified:
+            problems.append(f"{nurse.full_name} is not KYC approved")
+            continue
+        if nurse.interview_status in ("SCHEDULED", "SELECTED", "PASSED"):
+            problems.append(f"{nurse.full_name} is already {nurse.interview_status.lower().replace('_', ' ')}")
+            continue
+        nurses.append((nurse, nid))
+
+    if problems:
+        raise HTTPException(status_code=400, detail="Cannot assign: " + "; ".join(problems))
+
+    assigned = []
+    for nurse, nid in nurses:
+        previous_status = nurse.interview_status
 
         # Create interview record
         interview = Interview(
@@ -718,6 +863,11 @@ def batch_assign_nurses(
         background_tasks.add_task(send_email, nurse.email, subject, "email/interview_scheduled.html", context)
 
         assigned.append(str(nurse.id))
+
+        # Per-nurse audit trail — fixes the aggregate-only logging gap
+        log_admin_action(db, current_admin["id"], "INTERVIEW_ASSIGNED", str(nurse.id),
+                        previous_status, "SCHEDULED",
+                        details=f"Venue: {session.venue_name} | Date: {session.interview_date} {session.interview_time}")
 
     db.commit()
 
@@ -817,6 +967,25 @@ def create_shift(
     nurse = db.query(Nurse).filter(Nurse.id == nurse_uuid).first()
     if not nurse:
         raise HTTPException(status_code=404, detail="Nurse not found")
+
+    # Block past dates
+    try:
+        shift_date_val = date.fromisoformat(str(data["shift_date"]))
+    except Exception:
+        raise HTTPException(400, "Invalid shift_date. Use YYYY-MM-DD.")
+    if shift_date_val < date.today():
+        raise HTTPException(400, "Cannot create a shift on a past date.")
+
+    # Block past time on today's shifts
+    if shift_date_val == date.today():
+        shift_time_str = data.get("shift_time", "")
+        tmin = _time_12h_to_minutes(shift_time_str)
+        if tmin is None:
+            raise HTTPException(400, f"Invalid time format: '{shift_time_str}'. Use format like '8:00 AM'.")
+        now = datetime.now()
+        now_min = now.hour * 60 + now.minute
+        if tmin <= now_min:
+            raise HTTPException(400, f"Cannot create a shift for {shift_time_str} — this time has already passed today.")
 
     task_hospital_id = None
     if current_admin.get("admin_role") in ("hospital_admin", "dept_head") and current_admin.get("hospital_id"):
@@ -1244,6 +1413,17 @@ def assign_task(
         raise HTTPException(400, "Invalid shift_date. Use YYYY-MM-DD.")
     if shift_date < _date.today():
         raise HTTPException(400, "Cannot assign a task on a past date.")
+
+    # Block past time on today's tasks
+    if shift_date == _date.today():
+        shift_time_str = data.get("shift_time", "")
+        tmin = _time_12h_to_minutes(shift_time_str)
+        if tmin is None:
+            raise HTTPException(400, f"Invalid time format: '{shift_time_str}'. Use format like '8:00 AM'.")
+        now = datetime.now()
+        now_min = now.hour * 60 + now.minute
+        if tmin <= now_min:
+            raise HTTPException(400, f"Cannot assign a task for {shift_time_str} — this time has already passed today.")
 
     # Derive hospital_id from the admin's hospital context (null for platform_admin)
     task_hospital_id = None
