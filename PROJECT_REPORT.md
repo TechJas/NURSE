@@ -831,7 +831,7 @@ Nurse                 OWN          OWN           N/A              N/A
 |-----------|-----|
 | Frontend | `https://marvelous-dango-21acdf.netlify.app` |
 | Backend | `https://nurse-wvfe.onrender.com` |
-| Database | `aws-1-ap-south-1.pooler.supabase.com` |
+| Database | Internal (Supabase PostgreSQL — not public) |
 
 ### Environment Variables
 
