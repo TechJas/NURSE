@@ -69,7 +69,11 @@ cd backend
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in `backend/` (see **Environment Variables** below).
+Copy `backend/.env.example` to `backend/.env` and fill in your own values (see **Environment Variables** below):
+
+```bash
+cp backend/.env.example backend/.env
+```
 
 ### 3. Initialize the database
 
